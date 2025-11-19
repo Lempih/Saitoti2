@@ -57,7 +57,6 @@
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="./js/toast.js"></script>
 </head>
 <body>
     <div class="title">
@@ -128,23 +127,44 @@
         </div>
     </div>
 
+    <script src="./js/forms.js"></script>
     <script>
-        <?php if (isset($_SESSION['error'])): ?>
-            showError('<?php echo addslashes($_SESSION['error']); ?>');
-            <?php unset($_SESSION['error']); ?>
-        <?php endif; ?>
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php if (isset($_SESSION['error'])): ?>
+                setTimeout(function() {
+                    if (typeof showError === 'function') {
+                        showError('<?php echo addslashes($_SESSION['error']); ?>');
+                    } else {
+                        alert('<?php echo addslashes($_SESSION['error']); ?>');
+                    }
+                }, 100);
+                <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>
 
-        <?php if (isset($_SESSION['success'])): ?>
-            showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
-            <?php unset($_SESSION['success']); ?>
-        <?php endif; ?>
+            <?php if (isset($_SESSION['success'])): ?>
+                setTimeout(function() {
+                    if (typeof showSuccess === 'function') {
+                        showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
+                    }
+                }, 100);
+                <?php unset($_SESSION['success']); ?>
+            <?php endif; ?>
 
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            var btn = document.getElementById('loginBtn');
-            btn.disabled = true;
-            btn.value = 'Logging in...';
+            // Form submission handler
+            var loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.addEventListener('submit', function(e) {
+                    var btn = document.getElementById('loginBtn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.value = 'Logging in...';
+                    }
+                    return true; // Allow form to submit
+                });
+            }
         });
     </script>
 
+    <script src="./js/toast.js"></script>
 </body>
 </html>

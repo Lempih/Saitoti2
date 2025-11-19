@@ -46,7 +46,6 @@
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="./js/toast.js"></script>
 </head>
 <body>
     <div class="title">
@@ -113,21 +112,51 @@
         </div>
     </div>
 
+    <script src="./js/toast.js"></script>
     <script>
-        <?php if (isset($_SESSION['error'])): ?>
-            showError('<?php echo addslashes($_SESSION['error']); ?>');
-            <?php unset($_SESSION['error']); ?>
-        <?php endif; ?>
+        // Wait for DOM and toast to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            <?php if (isset($_SESSION['error'])): ?>
+                if (typeof showError === 'function') {
+                    showError('<?php echo addslashes($_SESSION['error']); ?>');
+                } else {
+                    setTimeout(function() {
+                        if (typeof showError === 'function') {
+                            showError('<?php echo addslashes($_SESSION['error']); ?>');
+                        } else {
+                            alert('<?php echo addslashes($_SESSION['error']); ?>');
+                        }
+                    }, 100);
+                }
+                <?php unset($_SESSION['error']); ?>
+            <?php endif; ?>
 
-        <?php if (isset($_SESSION['success'])): ?>
-            showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
-            <?php unset($_SESSION['success']); ?>
-        <?php endif; ?>
+            <?php if (isset($_SESSION['success'])): ?>
+                if (typeof showSuccess === 'function') {
+                    showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
+                } else {
+                    setTimeout(function() {
+                        if (typeof showSuccess === 'function') {
+                            showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
+                        }
+                    }, 100);
+                }
+                <?php unset($_SESSION['success']); ?>
+            <?php endif; ?>
 
-        document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
-            var btn = document.getElementById('adminLoginBtn');
-            btn.disabled = true;
-            btn.value = 'Signing in...';
+            // Form submission handler
+            var adminForm = document.getElementById('adminLoginForm');
+            if (adminForm) {
+                adminForm.addEventListener('submit', function(e) {
+                    var btn = document.getElementById('adminLoginBtn');
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.value = 'Signing in...';
+                    }
+                    // Allow form to submit normally
+                    return true;
+                });
+            }
         });
     </script>
 

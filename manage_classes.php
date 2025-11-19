@@ -14,7 +14,6 @@
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link rel="stylesheet" type='text/css' href="css/manage.css">
     <script src="./js/main.js"></script>
-    <script src="./js/toast.js"></script>
     <title>Course Management - Academic Results System</title>
     <style>
         .breadcrumb {
@@ -73,6 +72,8 @@
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            
         <?php if (isset($_SESSION['error'])): ?>
             showError('<?php echo addslashes($_SESSION['error']); ?>');
             <?php unset($_SESSION['error']); ?>
@@ -82,6 +83,9 @@
             showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
+    
+        });
     </script>
+    <script src="./js/toast.js"></script>
 </body>
 </html>

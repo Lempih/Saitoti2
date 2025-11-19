@@ -98,7 +98,6 @@
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link rel="stylesheet" href="./css/form.css">
     <script src="./js/main.js"></script>
-    <script src="./js/toast.js"></script>
     <title>Enter Examination Results - Academic Results System</title>
     <style>
         .breadcrumb {
@@ -162,6 +161,8 @@
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            
         <?php if (isset($_SESSION['error'])): ?>
             showError('<?php echo addslashes($_SESSION['error']); ?>');
             <?php unset($_SESSION['error']); ?>
@@ -177,7 +178,10 @@
             btn.disabled = true;
             btn.value = 'Submitting...';
         });
+    
+        });
     </script>
 
+    <script src="./js/toast.js"></script>
 </body>
 </html>

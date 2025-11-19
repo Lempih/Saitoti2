@@ -149,8 +149,7 @@
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="./js/toast.js"></script>
-</head>
+    </head>
 <body>
     <div class="title">
         <span>Student Registration</span>
@@ -209,6 +208,8 @@
     </div>
 
     <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            
         <?php if (isset($_SESSION['error'])): ?>
             showError('<?php echo addslashes($_SESSION['error']); ?>');
             <?php unset($_SESSION['error']); ?>
@@ -276,7 +277,10 @@
                 submitBtn.value = 'Register';
             }
         });
+    
+        });
     </script>
 
+    <script src="./js/toast.js"></script>
 </body>
 </html>
