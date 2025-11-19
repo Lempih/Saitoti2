@@ -41,6 +41,21 @@ foreach ($courses as $course) {
     mysqli_stmt_close($stmt);
 }
 
+// 2. Check if email and password columns exist, if not, add them
+$check_email = "SHOW COLUMNS FROM student_records LIKE 'email'";
+$result = mysqli_query($db_connection, $check_email);
+if (mysqli_num_rows($result) == 0) {
+    mysqli_query($db_connection, "ALTER TABLE student_records ADD COLUMN email VARCHAR(100) UNIQUE AFTER full_name");
+    echo "<p>✓ Added email column</p>";
+}
+
+$check_password = "SHOW COLUMNS FROM student_records LIKE 'password'";
+$result = mysqli_query($db_connection, $check_password);
+if (mysqli_num_rows($result) == 0) {
+    mysqli_query($db_connection, "ALTER TABLE student_records ADD COLUMN password VARCHAR(255) AFTER email");
+    echo "<p>✓ Added password column</p>";
+}
+
 // 2. Create Students
 $students = [
     ['name' => 'John Doe', 'roll' => 1001, 'course' => 'Computer Science', 'email' => 'john.doe@example.com', 'password' => password_hash('password123', PASSWORD_DEFAULT)],
@@ -62,9 +77,23 @@ foreach ($students as $student) {
     $result = mysqli_stmt_get_result($stmt);
     
     if (mysqli_num_rows($result) == 0) {
-        $insert = "INSERT INTO student_records (full_name, roll_number, enrolled_course, email, password) VALUES (?, ?, ?, ?, ?)";
-        $stmt2 = mysqli_prepare($db_connection, $insert);
-        mysqli_stmt_bind_param($stmt2, "siss", $student['name'], $student['roll'], $student['course'], $student['email'], $student['password']);
+        // Check if email/password columns exist
+        $has_email = false;
+        $check_cols = "SHOW COLUMNS FROM student_records LIKE 'email'";
+        $col_result = mysqli_query($db_connection, $check_cols);
+        if (mysqli_num_rows($col_result) > 0) {
+            $has_email = true;
+        }
+        
+        if ($has_email) {
+            $insert = "INSERT INTO student_records (full_name, roll_number, enrolled_course, email, password) VALUES (?, ?, ?, ?, ?)";
+            $stmt2 = mysqli_prepare($db_connection, $insert);
+            mysqli_stmt_bind_param($stmt2, "siss", $student['name'], $student['roll'], $student['course'], $student['email'], $student['password']);
+        } else {
+            $insert = "INSERT INTO student_records (full_name, roll_number, enrolled_course) VALUES (?, ?, ?)";
+            $stmt2 = mysqli_prepare($db_connection, $insert);
+            mysqli_stmt_bind_param($stmt2, "sis", $student['name'], $student['roll'], $student['course']);
+        }
         mysqli_stmt_execute($stmt2);
         echo "<p>✓ Created student: {$student['name']} (Roll: {$student['roll']})</p>";
     } else {
