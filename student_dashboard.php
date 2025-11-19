@@ -1,9 +1,10 @@
 <?php
-    require_once("db_config.php");
     session_start();
+    require_once("db_config.php");
 
     // Check if student is logged in
     if (!isset($_SESSION['student_logged_in']) || $_SESSION['student_logged_in'] !== true) {
+        $_SESSION['error'] = "Please login to access your dashboard.";
         header("Location: student_login.php");
         exit();
     }
@@ -14,14 +15,19 @@
     $student_course = $_SESSION['student_course'];
 
     // Get student's results
-    $result_query = "SELECT subject_1, subject_2, subject_3, subject_4, subject_5, total_marks, grade_percentage, created_at FROM exam_results WHERE roll_number = ? AND course_name = ? ORDER BY created_at DESC LIMIT 1";
-    $stmt = mysqli_prepare($db_connection, $result_query);
-    mysqli_stmt_bind_param($stmt, "is", $student_roll, $student_course);
-    mysqli_stmt_execute($stmt);
-    $result_data = mysqli_stmt_get_result($stmt);
-    $has_results = mysqli_num_rows($result_data) > 0;
-    $result_row = $has_results ? mysqli_fetch_assoc($result_data) : null;
-    mysqli_stmt_close($stmt);
+    if ($db_connection) {
+        $result_query = "SELECT subject_1, subject_2, subject_3, subject_4, subject_5, total_marks, grade_percentage, created_at FROM exam_results WHERE roll_number = ? AND course_name = ? ORDER BY created_at DESC LIMIT 1";
+        $stmt = mysqli_prepare($db_connection, $result_query);
+        mysqli_stmt_bind_param($stmt, "is", $student_roll, $student_course);
+        mysqli_stmt_execute($stmt);
+        $result_data = mysqli_stmt_get_result($stmt);
+        $has_results = mysqli_num_rows($result_data) > 0;
+        $result_row = $has_results ? mysqli_fetch_assoc($result_data) : null;
+        mysqli_stmt_close($stmt);
+    } else {
+        $has_results = false;
+        $result_row = null;
+    }
 ?>
         
 <!DOCTYPE html>
@@ -33,15 +39,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <script src="./js/main.js"></script>
+    <script src="./js/toast.js"></script>
     <title>Student Dashboard - Academic Results System</title>
     <style>
         .welcome-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
             padding: 30px;
             border-radius: 15px;
             margin-bottom: 30px;
             color: white;
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+            box-shadow: 0 5px 20px rgba(39, 174, 96, 0.3);
         }
         .welcome-card h2 {
             margin: 0 0 10px 0;
@@ -59,7 +66,7 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
         .result-card h3 {
-            color: #667eea;
+            color: #27ae60;
             margin-bottom: 20px;
         }
         .result-grid {
@@ -74,6 +81,11 @@
             border-radius: 10px;
             text-align: center;
             border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        .subject-score:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.2);
         }
         .subject-score .label {
             font-size: 0.9rem;
@@ -83,10 +95,10 @@
         .subject-score .score {
             font-size: 2rem;
             font-weight: 700;
-            color: #667eea;
+            color: #27ae60;
         }
         .total-score {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
             color: white;
             padding: 25px;
             border-radius: 15px;
@@ -119,7 +131,7 @@
     <div class="title">
         <a href="student_dashboard.php"><img src="./images/logo1.png" alt="Logo" class="logo"></a>
         <span class="heading">Student Dashboard</span>
-        <a href="student_logout.php" style="color: #667eea">
+        <a href="student_logout.php" style="color: #27ae60">
             <span class="fa fa-sign-out fa-2x">Logout</span>
         </a>
     </div>
@@ -170,7 +182,7 @@
                 <div style="text-align: center; margin-top: 30px;">
                     <a href="student.php?course=<?php echo urlencode($student_course); ?>&rollno=<?php echo $student_roll; ?>" 
                        class="btn btn-primary" 
-                       style="display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 30px; font-weight: 600; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                       style="display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%); color: white; text-decoration: none; border-radius: 30px; font-weight: 600; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4); transition: all 0.3s ease;">
                         <i class="fa fa-print"></i> View & Print Results
                     </a>
                 </div>
@@ -190,6 +202,18 @@
     <div class="footer">
         <p>&copy; 2024 Academic Results Management System</p>
     </div>
+
+    <script>
+        // Show toast notifications
+        <?php if (isset($_SESSION['error'])): ?>
+            showError('<?php echo addslashes($_SESSION['error']); ?>');
+            <?php unset($_SESSION['error']); ?>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['success'])): ?>
+            showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
+            <?php unset($_SESSION['success']); ?>
+        <?php endif; ?>
+    </script>
 </body>
 </html>
-

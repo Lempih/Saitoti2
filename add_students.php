@@ -1,3 +1,69 @@
+<?php
+    session_start();
+    require_once('db_config.php');
+    require_once('auth_check.php');
+
+    // Handle form submission
+    if(isset($_POST['student_name'], $_POST['roll_number'], $_POST['submit_student'])) {
+        $student_name = trim($_POST['student_name']);
+        $roll_number = intval($_POST['roll_number']);
+        $course_name = isset($_POST['course_name']) ? trim($_POST['course_name']) : null;
+
+        // Validation
+        $errors = [];
+        if (empty($student_name) || strlen($student_name) < 3) {
+            $errors[] = "Please enter student name (min 3 characters)";
+        }
+        if (empty($course_name)) {
+            $errors[] = "Please select a course";
+        }
+        if (empty($roll_number) || $roll_number <= 0) {
+            $errors[] = "Please enter a valid roll number";
+        }
+        if (!preg_match("/^[a-zA-Z\s]+$/", $student_name)) {
+            $errors[] = "Name should only contain letters and spaces";
+        }
+
+        if (!empty($errors)) {
+            $_SESSION['error'] = implode(". ", $errors);
+            header("Location: add_students.php");
+            exit();
+        }
+
+        // Check if student with same name and roll number already exists
+        $check_query = "SELECT full_name, roll_number FROM student_records WHERE full_name = ? AND roll_number = ?";
+        $check_stmt = mysqli_prepare($db_connection, $check_query);
+        mysqli_stmt_bind_param($check_stmt, "si", $student_name, $roll_number);
+        mysqli_stmt_execute($check_stmt);
+        $check_result = mysqli_stmt_get_result($check_stmt);
+        
+        if(mysqli_num_rows($check_result) > 0) {
+            $_SESSION['error'] = "Student with this name and roll number already exists!";
+            mysqli_stmt_close($check_stmt);
+            header("Location: add_students.php");
+            exit();
+        }
+        mysqli_stmt_close($check_stmt);
+        
+        // Insert student using prepared statement
+        $insert_query = "INSERT INTO student_records (full_name, roll_number, enrolled_course) VALUES (?, ?, ?)";
+        $stmt = mysqli_prepare($db_connection, $insert_query);
+        mysqli_stmt_bind_param($stmt, "sis", $student_name, $roll_number, $course_name);
+        $result = mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+        
+        if (!$result) {
+            $_SESSION['error'] = "Error: Could not register student. Please check the details.";
+            header("Location: add_students.php");
+            exit();
+        }
+        else{
+            $_SESSION['success'] = "Student registered successfully!";
+            header("Location: add_students.php");
+            exit();
+        }
+    }
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,6 +75,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <script src="./js/main.js"></script>
+    <script src="./js/toast.js"></script>
     <title>Register New Student</title>
 </head>
 <body>
@@ -16,7 +83,9 @@
     <div class="title">
         <a href="dashboard.php"><img src="./images/logo1.png" alt="Logo" class="logo"></a>
         <span class="heading">Control Panel</span>
-        <a href="logout.php" style="color: white"><span class="fa fa-sign-out fa-2x">Logout</span></a>
+        <a href="logout.php" style="color: #27ae60">
+            <span class="fa fa-sign-out fa-2x">Logout</span>
+        </a>
     </div>
 
     <div class="nav">
@@ -52,95 +121,55 @@
     </div>
 
     <div class="main">
-        <form action="" method="post">
+        <form action="" method="post" id="studentForm">
             <fieldset>
                 <legend>Register New Student</legend>
                 <input type="text" name="student_name" placeholder="Full Name" required>
-                <input type="number" name="roll_number" placeholder="Roll Number" required>
+                <input type="number" name="roll_number" placeholder="Roll Number" required min="1">
                 <?php
-                    require_once('db_config.php');
-                    require_once('auth_check.php');
-                    
-                    $course_query = "SELECT course_name FROM courses ORDER BY course_name ASC";
-                    $course_result = mysqli_query($db_connection, $course_query);
-                    
-                    echo '<select name="course_name" required>';
-                    echo '<option value="" selected disabled>Select Course</option>';
-                    
-                    while($course_row = mysqli_fetch_array($course_result)){
-                        $course_display = $course_row['course_name'];
-                        echo '<option value="'.$course_display.'">'.$course_display.'</option>';
+                    if ($db_connection) {
+                        $course_query = "SELECT course_name FROM courses ORDER BY course_name ASC";
+                        $course_result = mysqli_query($db_connection, $course_query);
+                        
+                        if ($course_result && mysqli_num_rows($course_result) > 0) {
+                            echo '<select name="course_name" required>';
+                            echo '<option value="" selected disabled>Select Course</option>';
+                            
+                            while($course_row = mysqli_fetch_array($course_result)){
+                                $course_display = htmlspecialchars($course_row['course_name']);
+                                echo '<option value="'.$course_display.'">'.$course_display.'</option>';
+                            }
+                            echo '</select>';
+                        } else {
+                            echo '<p style="color: #e74c3c; padding: 10px; text-align: center;">No courses available</p>';
+                        }
                     }
-                    echo '</select>';
                 ?>
-                <input type="submit" value="Register Student" name="submit_student">
+                <input type="submit" value="Register Student" name="submit_student" id="submitBtn">
             </fieldset>
         </form>
     </div>
 
     <div class="footer">
     </div>
+
+    <script>
+        <?php if (isset($_SESSION['error'])): ?>
+            showError('<?php echo addslashes($_SESSION['error']); ?>');
+            <?php unset($_SESSION['error']); ?>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['success'])): ?>
+            showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
+            <?php unset($_SESSION['success']); ?>
+        <?php endif; ?>
+
+        // Form submission handling
+        document.getElementById('studentForm').addEventListener('submit', function(e) {
+            var btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.value = 'Registering...';
+        });
+    </script>
 </body>
 </html>
-
-<?php
-
-    if(isset($_POST['student_name'], $_POST['roll_number'], $_POST['submit_student'])) {
-        require_once('db_config.php');
-        require_once('auth_check.php');
-        
-        $student_name = trim($_POST['student_name']);
-        $roll_number = intval($_POST['roll_number']);
-        $course_name = isset($_POST['course_name']) ? trim($_POST['course_name']) : null;
-
-        // Validation
-        if (empty($student_name) || empty($roll_number) || empty($course_name) || $roll_number <= 0) {
-            if(empty($student_name))
-                echo '<p class="error">Please enter student name</p>';
-            if(empty($course_name))
-                echo '<p class="error">Please select a course</p>';
-            if(empty($roll_number) || $roll_number <= 0)
-                echo '<p class="error">Please enter a valid roll number</p>';
-            if (!preg_match("/^[a-zA-Z\s]+$/", $student_name)) {
-                echo '<p class="error">Name should only contain letters and spaces</p>'; 
-            }
-            exit();
-        }
-
-        // Check if student with same name and roll number already exists
-        $check_query = "SELECT full_name, roll_number FROM student_records WHERE full_name = ? AND roll_number = ?";
-        $check_stmt = mysqli_prepare($db_connection, $check_query);
-        mysqli_stmt_bind_param($check_stmt, "si", $student_name, $roll_number);
-        mysqli_stmt_execute($check_stmt);
-        $check_result = mysqli_stmt_get_result($check_stmt);
-        
-        if(mysqli_num_rows($check_result) > 0) {
-            echo '<script language="javascript">';
-            echo 'alert("Student with this name and roll number already exists!")';
-            echo '</script>';
-            mysqli_stmt_close($check_stmt);
-            exit();
-        }
-        mysqli_stmt_close($check_stmt);
-        
-        // Insert student using prepared statement
-        $insert_query = "INSERT INTO student_records (full_name, roll_number, enrolled_course) VALUES (?, ?, ?)";
-        $stmt = mysqli_prepare($db_connection, $insert_query);
-        mysqli_stmt_bind_param($stmt, "sis", $student_name, $roll_number, $course_name);
-        $result = mysqli_stmt_execute($stmt);
-        mysqli_stmt_close($stmt);
-        
-        if (!$result) {
-            echo '<script language="javascript">';
-            echo 'alert("Error: Could not register student. Please check the details.")';
-            echo '</script>';
-        }
-        else{
-            echo '<script language="javascript">';
-            echo 'alert("Student registered successfully!")';
-            echo 'window.location.href = "add_students.php";';
-            echo '</script>';
-        }
-
-    }
-?>

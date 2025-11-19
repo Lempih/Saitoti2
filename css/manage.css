@@ -19,7 +19,7 @@
 .main table caption {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #667eea;
+    color: #27ae60;
     margin-bottom: 20px;
     padding: 20px;
     font-family: 'Poppins', sans-serif;
@@ -27,7 +27,7 @@
 
 .main table th {
     color: white;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
     padding: 18px 25px;
     text-align: left;
     font-weight: 600;

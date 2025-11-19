@@ -7,7 +7,7 @@
 body {
     margin: 0;
     font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
     min-height: 100vh;
     color: white;
 }
@@ -17,7 +17,7 @@ body {
     grid-template-columns: 150px 1fr 150px;
     align-items: center;
     padding: 20px 40px;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(10px);
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
     position: sticky;
@@ -34,12 +34,12 @@ body {
 .heading {
     font-size: 2rem;
     font-weight: 700;
-    color: #667eea;
+    color: #27ae60;
     text-align: center;
 }
 
 .title a {
-    color: #667eea;
+    color: #27ae60;
     text-decoration: none;
     font-weight: 600;
     display: flex;
@@ -51,7 +51,7 @@ body {
 }
 
 .title a:hover {
-    background: #667eea;
+    background: #27ae60;
     color: white;
     transform: translateY(-2px);
 }
@@ -100,7 +100,7 @@ li.dropdown {
 .dropdown-content {
     display: none;
     position: absolute;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(10px);
     min-width: 200px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
@@ -120,7 +120,7 @@ li.dropdown {
 }
 
 .dropdown-content a:hover {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
     color: white;
     padding-left: 30px;
 }
@@ -134,7 +134,7 @@ li.dropdown {
     padding: 40px;
     max-width: 1200px;
     margin: 40px auto;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.98);
     backdrop-filter: blur(10px);
     border-radius: 20px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
@@ -149,18 +149,18 @@ li.dropdown {
 }
 
 .stat-card {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
     padding: 30px;
     margin: 20px 0;
     border-radius: 15px;
-    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 5px 20px rgba(39, 174, 96, 0.3);
     color: white;
     transition: all 0.3s ease;
 }
 
 .stat-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 30px rgba(39, 174, 96, 0.4);
 }
 
 .stat-card p {

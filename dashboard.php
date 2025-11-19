@@ -1,10 +1,18 @@
 <?php
+    session_start();
     require_once("db_config.php");
+    require_once('auth_check.php');
     
     // Get statistics
-    $total_courses = mysqli_fetch_array(mysqli_query($db_connection, "SELECT COUNT(*) FROM courses"));
-    $total_students = mysqli_fetch_array(mysqli_query($db_connection, "SELECT COUNT(*) FROM student_records"));
-    $total_results = mysqli_fetch_array(mysqli_query($db_connection, "SELECT COUNT(*) FROM exam_results"));
+    if ($db_connection) {
+        $total_courses = mysqli_fetch_array(mysqli_query($db_connection, "SELECT COUNT(*) FROM courses"));
+        $total_students = mysqli_fetch_array(mysqli_query($db_connection, "SELECT COUNT(*) FROM student_records"));
+        $total_results = mysqli_fetch_array(mysqli_query($db_connection, "SELECT COUNT(*) FROM exam_results"));
+    } else {
+        $total_courses = [0];
+        $total_students = [0];
+        $total_results = [0];
+    }
 ?>
         
 <!DOCTYPE html>
@@ -17,12 +25,13 @@
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link rel="stylesheet" href="normalize.css">
     <script src="./js/main.js"></script>
+    <script src="./js/toast.js"></script>
     <title>Control Panel - Academic Results System</title>
     <style>
         .main h2 {
             text-align: center;
             margin-bottom: 30px;
-            color: #667eea;
+            color: #27ae60;
             font-size: 2rem;
             font-weight: 700;
         }
@@ -33,7 +42,9 @@
     <div class="title">
         <a href="dashboard.php"><img src="./images/logo1.png" alt="Logo" class="logo"></a>
         <span class="heading">Control Panel</span>
-        <a href="logout.php" style="color: white"><span class="fa fa-sign-out fa-2x">Logout</span></a>
+        <a href="logout.php" style="color: #27ae60">
+            <span class="fa fa-sign-out fa-2x">Logout</span>
+        </a>
     </div>
 
     <div class="nav">
@@ -69,7 +80,7 @@
     </div>
 
     <div class="main">
-        <h2 style="text-align: center; margin-bottom: 30px;">System Overview</h2>
+        <h2>System Overview</h2>
         <div class="stat-card">
             <p><strong>Total Courses:</strong> <?php echo $total_courses[0]; ?></p>
         </div>
@@ -83,9 +94,17 @@
 
     <div class="footer">
     </div>
+
+    <script>
+        <?php if (isset($_SESSION['error'])): ?>
+            showError('<?php echo addslashes($_SESSION['error']); ?>');
+            <?php unset($_SESSION['error']); ?>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['success'])): ?>
+            showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
+            <?php unset($_SESSION['success']); ?>
+        <?php endif; ?>
+    </script>
 </body>
 </html>
-
-<?php
-   require_once('auth_check.php');
-?>
