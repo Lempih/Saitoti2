@@ -10,6 +10,15 @@ class Toast {
     }
 
     init() {
+        // Wait for DOM to be ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.createContainer());
+        } else {
+            this.createContainer();
+        }
+    }
+
+    createContainer() {
         // Create toast container if it doesn't exist
         if (!document.getElementById('toast-container')) {
             this.container = document.createElement('div');
@@ -24,13 +33,34 @@ class Toast {
                 gap: 10px;
                 pointer-events: none;
             `;
-            document.body.appendChild(this.container);
+            if (document.body) {
+                document.body.appendChild(this.container);
+            } else {
+                // If body doesn't exist yet, wait a bit
+                setTimeout(() => {
+                    if (document.body) {
+                        document.body.appendChild(this.container);
+                    }
+                }, 100);
+            }
         } else {
             this.container = document.getElementById('toast-container');
         }
     }
 
     show(message, type = 'info', duration = 4000) {
+        // Ensure container exists
+        if (!this.container) {
+            this.createContainer();
+        }
+        
+        // Double check container exists before proceeding
+        if (!this.container || !document.body) {
+            console.warn('Toast container not ready, using alert fallback');
+            alert(message);
+            return null;
+        }
+
         const toast = document.createElement('div');
         const icons = {
             success: 'fa-check-circle',
@@ -90,6 +120,7 @@ class Toast {
     }
 
     remove(toast) {
+        if (!toast) return;
         toast.style.transform = 'translateX(400px)';
         toast.style.opacity = '0';
         setTimeout(() => {
@@ -116,27 +147,48 @@ class Toast {
     }
 }
 
-// Global toast instance
-const toast = new Toast();
+// Initialize toast when DOM is ready
+let toast;
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        toast = new Toast();
+    });
+} else {
+    toast = new Toast();
+}
 
 // Helper functions for easy access
 function showToast(message, type = 'info', duration = 4000) {
+    if (!toast) {
+        toast = new Toast();
+    }
     return toast.show(message, type, duration);
 }
 
 function showSuccess(message, duration = 4000) {
+    if (!toast) {
+        toast = new Toast();
+    }
     return toast.success(message, duration);
 }
 
 function showError(message, duration = 5000) {
+    if (!toast) {
+        toast = new Toast();
+    }
     return toast.error(message, duration);
 }
 
 function showWarning(message, duration = 4000) {
+    if (!toast) {
+        toast = new Toast();
+    }
     return toast.warning(message, duration);
 }
 
 function showInfo(message, duration = 4000) {
+    if (!toast) {
+        toast = new Toast();
+    }
     return toast.info(message, duration);
 }
-

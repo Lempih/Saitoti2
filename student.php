@@ -67,7 +67,6 @@
     <link rel="stylesheet" href="./css/student.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
-    <script src="./js/toast.js"></script>
     <title>Student Result View - Academic Results System</title>
     <style>
         .nav-bar {
@@ -125,8 +124,19 @@
                 </a>
             </div>
         </div>
+        <script src="./js/toast.js"></script>
         <script>
-            showError('<?php echo addslashes(implode(" ", $error_msg)); ?>');
+            // Wait for toast to be ready
+            if (typeof showError === 'function') {
+                showError('<?php echo addslashes(implode(" ", $error_msg)); ?>');
+            } else {
+                // Fallback if toast not ready
+                setTimeout(function() {
+                    if (typeof showError === 'function') {
+                        showError('<?php echo addslashes(implode(" ", $error_msg)); ?>');
+                    }
+                }, 500);
+            }
         </script>
     <?php elseif (isset($has_results) && $has_results): ?>
     <div class="container">
@@ -167,5 +177,6 @@
         </div>
     </div>
     <?php endif; ?>
+    <script src="./js/toast.js"></script>
 </body>
 </html>
