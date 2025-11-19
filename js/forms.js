@@ -1,75 +1,34 @@
 /**
  * Form Handling JavaScript
- * Ensures all forms submit properly and buttons work
+ * MINIMAL - Only shows loading states, never prevents submission
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle all form submissions - but DON'T prevent default
-    var forms = document.querySelectorAll('form');
+    // Only handle forms that don't already have handlers
+    var forms = document.querySelectorAll('form:not([data-no-handler])');
     forms.forEach(function(form) {
-        // Check if form already has a submit handler
+        // Skip if already handled
         if (form.dataset.handlerAdded) return;
         form.dataset.handlerAdded = 'true';
         
         form.addEventListener('submit', function(e) {
-            // DO NOT call e.preventDefault() - let form submit normally
+            // NEVER prevent default - just show loading
             var submitBtn = form.querySelector('input[type="submit"], button[type="submit"]');
             if (submitBtn && !submitBtn.disabled) {
-                // Show loading state
                 submitBtn.disabled = true;
                 if (submitBtn.tagName === 'INPUT') {
-                    var currentValue = submitBtn.value;
-                    if (currentValue.indexOf('Sign In') !== -1) {
-                        submitBtn.value = 'Signing in...';
-                    } else if (currentValue.indexOf('Login') !== -1) {
-                        submitBtn.value = 'Logging in...';
-                    } else if (currentValue.indexOf('Submit') !== -1) {
-                        submitBtn.value = 'Submitting...';
-                    } else if (currentValue.indexOf('Register') !== -1) {
-                        submitBtn.value = 'Registering...';
-                    } else if (currentValue.indexOf('Create') !== -1) {
-                        submitBtn.value = 'Creating...';
-                    } else if (currentValue.indexOf('Update') !== -1) {
-                        submitBtn.value = 'Updating...';
-                    } else if (currentValue.indexOf('Delete') !== -1) {
-                        submitBtn.value = 'Deleting...';
-                    } else {
-                        submitBtn.value = 'Processing...';
-                    }
+                    var val = submitBtn.value;
+                    if (val.includes('Sign In')) submitBtn.value = 'Signing in...';
+                    else if (val.includes('Login')) submitBtn.value = 'Logging in...';
+                    else if (val.includes('Submit')) submitBtn.value = 'Submitting...';
+                    else if (val.includes('Register')) submitBtn.value = 'Registering...';
+                    else if (val.includes('Create')) submitBtn.value = 'Creating...';
+                    else if (val.includes('Update')) submitBtn.value = 'Updating...';
+                    else if (val.includes('Delete')) submitBtn.value = 'Deleting...';
+                    else submitBtn.value = 'Processing...';
                 }
-                // Form will submit normally - we're not preventing it
             }
-        }, false); // Use capture phase false
-    });
-
-    // Handle all button clicks
-    var buttons = document.querySelectorAll('button, input[type="submit"], input[type="button"]');
-    buttons.forEach(function(button) {
-        // Skip if already has onclick handler
-        if (button.onclick) return;
-        
-        button.addEventListener('click', function(e) {
-            // If it's a submit button, let the form handler take care of it
-            if (button.type === 'submit') {
-                return true;
-            }
-            
-            // For other buttons, ensure they work
-            if (button.onclick && typeof button.onclick === 'function') {
-                return button.onclick(e);
-            }
+            // Form submits normally - no return false, no preventDefault
         });
     });
-
-    // Ensure all links work
-    var links = document.querySelectorAll('a[href]');
-    links.forEach(function(link) {
-        link.addEventListener('click', function(e) {
-            // Allow normal link behavior
-            return true;
-        });
-    });
-
-    console.log('Form handlers initialized');
 });
-

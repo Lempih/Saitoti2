@@ -127,7 +127,6 @@
         </div>
     </div>
 
-    <script src="./js/forms.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             <?php if (isset($_SESSION['error'])): ?>

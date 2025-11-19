@@ -3,21 +3,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/homepage.css">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
-    <script src="./js/main.js"></script>
     <title>Academic Results Management System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1e8449 0%, #27ae60 100%);
+            padding: 20px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+        }
+        
+        .logo-text i {
+            font-size: 2.2rem;
+        }
+        
+        .main-nav {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .nav-link {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 12px 24px;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+        }
+        
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        
+        .btn-primary {
+            background: white !important;
+            color: #27ae60 !important;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 255, 255, 0.4);
+        }
+        
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #1e8449 0%, #27ae60 50%, #2ecc71 100%);
+            padding: 100px 40px;
+            color: white;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 600px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            filter: blur(80px);
+        }
+        
+        .hero-content {
+            z-index: 1;
+            animation: fadeInLeft 1s ease;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 25px;
+            line-height: 1.2;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 40px;
+            opacity: 0.95;
+            line-height: 1.8;
+            font-weight: 400;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 18px 35px;
+            border-radius: 35px;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            font-size: 1.05rem;
+            border: 2px solid transparent;
+        }
+        
+        .btn-large {
+            padding: 20px 45px;
+            font-size: 1.15rem;
+        }
+        
+        .btn-primary {
+            background: white;
+            color: #27ae60;
+            box-shadow: 0 6px 25px rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 35px rgba(255, 255, 255, 0.4);
+            background: #f8f9fa;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-4px);
+        }
+        
+        .hero-image {
+            z-index: 1;
+            animation: fadeInRight 1s ease;
+        }
+        
+        .hero-img {
+            width: 100%;
+            height: auto;
+            border-radius: 25px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            object-fit: cover;
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 100px 40px;
+            background: #f8f9fa;
+        }
+        
+        .features-content {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .section-title {
+            text-align: center;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #27ae60;
+            margin-bottom: 60px;
+            position: relative;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 5px;
+            background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+            border-radius: 3px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 35px;
+            margin-top: 60px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 45px 35px;
+            border-radius: 25px;
+            text-align: center;
+            transition: all 0.4s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e0e0;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-12px);
+            box-shadow: 0 15px 40px rgba(39, 174, 96, 0.2);
+            border-color: #27ae60;
+        }
+        
+        .feature-icon {
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 25px;
+            background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: white;
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+        
+        .feature-card h3 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .feature-card p {
+            color: #666;
+            line-height: 1.8;
+            font-size: 1rem;
+        }
+        
+        /* About Section */
+        .about {
+            padding: 100px 40px;
+            background: white;
+        }
+        
+        .about-content {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        .about-text {
+            font-size: 1.15rem;
+            color: #555;
+            line-height: 2;
+            margin-bottom: 25px;
+        }
+        
+        /* Footer */
+        .footer {
+            background: #2d3748;
+            color: white;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        /* Animations */
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .hero {
+                grid-template-columns: 1fr;
+                padding: 60px 30px;
+                text-align: center;
+            }
+            
+            .hero-title {
+                font-size: 2.8rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                padding: 0 20px;
+            }
+            
+            .main-nav {
+                justify-content: center;
+                width: 100%;
+            }
+            
+            .nav-link {
+                padding: 10px 18px;
+                font-size: 0.9rem;
+            }
+            
+            .hero {
+                padding: 50px 20px;
+            }
+            
+            .hero-title {
+                font-size: 2.2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .features {
+                padding: 60px 20px;
+            }
+            
+            .section-title {
+                font-size: 2.2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 25px;
+            }
+            
+            .about {
+                padding: 60px 20px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <!-- Header -->
         <header class="header">
             <div class="header-content">
-                <h1 class="logo-text">
+                <a href="index.html" class="logo-text">
                     <i class="fa fa-graduation-cap"></i>
                     Academic Results System
-                </h1>
+                </a>
                 <nav class="main-nav">
                     <a href="index.html" class="nav-link active">Home</a>
                     <a href="login.php" class="nav-link">Admin Login</a>
@@ -25,17 +432,17 @@
                     <a href="student_login.php" class="nav-link">Student Login</a>
                     <a href="login.php" class="nav-link btn-primary">View Results</a>
                 </nav>
-            </div>
+        </div>
         </header>
 
         <!-- Hero Section -->
         <section class="hero">
             <div class="hero-content">
                 <h2 class="hero-title">Welcome to Academic Results Management System</h2>
-                <p class="hero-subtitle">Streamline your academic record management with our comprehensive platform</p>
+                <p class="hero-subtitle">Streamline your academic record management with our comprehensive, secure, and user-friendly platform designed for modern educational institutions.</p>
                 <div class="hero-buttons">
                     <a href="login.php" class="btn btn-large btn-primary">
-                        <i class="fa fa-user"></i> Administrator Portal
+                        <i class="fa fa-user-shield"></i> Administrator Portal
                     </a>
                     <a href="student_signup.php" class="btn btn-large btn-secondary">
                         <i class="fa fa-user-plus"></i> Student Signup
@@ -55,37 +462,39 @@
 
         <!-- Features Section -->
         <section class="features">
-            <h2 class="section-title">Key Features</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fa fa-shield"></i>
+            <div class="features-content">
+                <h2 class="section-title">Key Features</h2>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa fa-shield"></i>
+                        </div>
+                        <h3>Secure Access</h3>
+                        <p>Protected administrator controls with secure authentication system and encrypted data storage</p>
                     </div>
-                    <h3>Secure Access</h3>
-                    <p>Protected administrator controls with secure authentication system</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fa fa-database"></i>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa fa-database"></i>
+                        </div>
+                        <h3>Easy Management</h3>
+                        <p>Simple and intuitive interface for managing courses, students, and results with real-time updates</p>
                     </div>
-                    <h3>Easy Management</h3>
-                    <p>Simple and intuitive interface for managing courses, students, and results</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fa fa-chart-line"></i>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa fa-chart-line"></i>
+                        </div>
+                        <h3>Quick Results</h3>
+                        <p>Students can instantly view their examination results with just their roll number - no login required</p>
                     </div>
-                    <h3>Quick Results</h3>
-                    <p>Students can instantly view their examination results with roll number</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fa fa-print"></i>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fa fa-print"></i>
+                        </div>
+                        <h3>Print Ready</h3>
+                        <p>Download and print result sheets directly from the system with professional formatting</p>
                     </div>
-                    <h3>Print Ready</h3>
-                    <p>Download and print result sheets directly from the system</p>
-                </div>
-            </div>
+        </div>
+        </div>
         </section>
 
         <!-- About Section -->
@@ -102,7 +511,7 @@
                     process of result management and distribution. The platform features comprehensive result tracking, 
                     grade calculation, and reporting capabilities to support academic excellence.
                 </p>
-            </div>
+        </div>
         </section>
 
         <!-- Footer -->
