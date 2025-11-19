@@ -3,71 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/homepage.css">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <script src="./js/main.js"></script>
     <title>Academic Results Management System</title>
 </head>
 <body>
-    
     <div class="container">
-        <div class="title">
-            <span class="heading">Academic Results Management System</span>
-        </div>
-        
-        <div class="nav">
-            <ul>
-                <li>
-                    <a href="index.html">Home</a>
-                </li>
-                <li>
-                    <a href="login.php">Administrator Login</a>
-                </li>
-                <li class="dropdown" onclick="toggleDisplay('1')">
-                    <a href="#" class="dropbtn">Academic Departments &nbsp
-                        <span class="fa fa-angle-down"></span>
-                    </a>
-                    <div class="dropdown-content" id="1">
-                        <a href="">Arts & Humanities</a>
-                        <a href="">Science & Technology</a>
-                        <a href="">Business & Commerce</a>
-                        <a href="">Engineering</a>
-                        <a href="">Health Sciences</a>
-                        <a href="">Other Programs</a>
-                    </div>
-                </li>
-                <li class="dropdown" onclick="toggleDisplay('2')">
-                    <a href="#" class="dropbtn">Student Services &nbsp
-                        <span class="fa fa-angle-down"></span>
-                    </a>
-                    <div class="dropdown-content" id="2">
-                        <a href="">New Admissions</a>
-                        <a href="">Scholarship Programs</a>
-                        <a href="">Examination Schedule</a>
-                        <a href="./login.php">View Results</a>
-                        <a href="">Academic Records</a>
-                    </div>
-                </li>
-            </ul>
-        </div>
-    
-        <div class="slider">
-            <img src="images/examp.jpg" class="slider-image" alt="Academic Excellence">
-        </div>
-    
-        <div class="main">
-            <span>About This System</span>
-			
-			<p>This Academic Results Management System is designed to provide a streamlined and efficient platform for managing student examination results. 
-            The system enables educational institutions to maintain accurate academic records while providing students with easy access to their examination results.
-            With secure administrator controls and a user-friendly student portal, this system simplifies the process of result management and distribution.
-            The platform features comprehensive result tracking, grade calculation, and reporting capabilities to support academic excellence.</p>
-           
-        </div>
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo-text">
+                    <i class="fa fa-graduation-cap"></i>
+                    Academic Results System
+                </h1>
+                <nav class="main-nav">
+                    <a href="index.html" class="nav-link active">Home</a>
+                    <a href="login.php" class="nav-link">Admin Login</a>
+                    <a href="login.php" class="nav-link btn-primary">View Results</a>
+                </nav>
+            </div>
+        </header>
 
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h2 class="hero-title">Welcome to Academic Results Management System</h2>
+                <p class="hero-subtitle">Streamline your academic record management with our comprehensive platform</p>
+                <div class="hero-buttons">
+                    <a href="login.php" class="btn btn-large btn-primary">
+                        <i class="fa fa-user"></i> Administrator Portal
+                    </a>
+                    <a href="login.php" class="btn btn-large btn-secondary">
+                        <i class="fa fa-search"></i> Check Your Results
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="images/examp.jpg" alt="Academic Excellence" class="hero-img">
+            </div>
+        </section>
 
+        <!-- Features Section -->
+        <section class="features">
+            <h2 class="section-title">Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa fa-shield"></i>
+                    </div>
+                    <h3>Secure Access</h3>
+                    <p>Protected administrator controls with secure authentication system</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa fa-database"></i>
+                    </div>
+                    <h3>Easy Management</h3>
+                    <p>Simple and intuitive interface for managing courses, students, and results</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa fa-chart-line"></i>
+                    </div>
+                    <h3>Quick Results</h3>
+                    <p>Students can instantly view their examination results with roll number</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fa fa-print"></i>
+                    </div>
+                    <h3>Print Ready</h3>
+                    <p>Download and print result sheets directly from the system</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- About Section -->
+        <section class="about">
+            <div class="about-content">
+                <h2 class="section-title">About This System</h2>
+                <p class="about-text">
+                    This Academic Results Management System is designed to provide a streamlined and efficient platform 
+                    for managing student examination results. The system enables educational institutions to maintain 
+                    accurate academic records while providing students with easy access to their examination results.
+                </p>
+                <p class="about-text">
+                    With secure administrator controls and a user-friendly student portal, this system simplifies the 
+                    process of result management and distribution. The platform features comprehensive result tracking, 
+                    grade calculation, and reporting capabilities to support academic excellence.
+                </p>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2024 Academic Results Management System. All rights reserved.</p>
+        </footer>
     </div>
-
 </body>
 </html>

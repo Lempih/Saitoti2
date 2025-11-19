@@ -6,7 +6,7 @@
     <title>Administrator Login - Academic Results System</title>
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
-    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div class="title">

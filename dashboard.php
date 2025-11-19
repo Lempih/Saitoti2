@@ -13,25 +13,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./css/home.css">
-    <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link rel="stylesheet" href="normalize.css">
     <script src="./js/main.js"></script>
     <title>Control Panel - Academic Results System</title>
     <style>
-        .main{
-            border-radius: 10px;
-            border-width: 5px;
-            border-style: solid;
-            padding: 20px;
-            margin: 7% 20% 0 20%;
-        }
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 20px;
-            margin: 15px 0;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        .main h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #667eea;
+            font-size: 2rem;
+            font-weight: 700;
         }
     </style>
 </head>
