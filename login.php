@@ -136,44 +136,35 @@
                 <?php unset($_SESSION['success']); ?>
             <?php endif; ?>
 
-            // Form submission handler - DO NOT prevent default
+            // Simple form submission handler
             var adminForm = document.getElementById('adminLoginForm');
             if (adminForm) {
-                // Remove any existing handlers first
-                var newForm = adminForm.cloneNode(true);
-                adminForm.parentNode.replaceChild(newForm, adminForm);
-                adminForm = newForm;
-                
-                adminForm.addEventListener('submit', function(e) {
-                    console.log('Form submitting...');
-                    // Don't prevent default - let form submit normally
+                adminForm.onsubmit = function(e) {
+                    console.log('Form submit event fired');
                     var btn = document.getElementById('adminLoginBtn');
-                    if (btn && !btn.disabled) {
+                    if (btn) {
                         btn.disabled = true;
                         btn.value = 'Signing in...';
                     }
-                    // Form will submit normally - no e.preventDefault()
-                }, false);
-                
-                // Also handle button click as fallback
-                var btn = document.getElementById('adminLoginBtn');
-                if (btn) {
-                    btn.addEventListener('click', function(e) {
-                        console.log('Button clicked');
-                        // Don't prevent - let form submit
-                        var form = document.getElementById('adminLoginForm');
-                        if (form) {
-                            // Check if form is valid
-                            if (form.checkValidity()) {
-                                console.log('Form is valid, submitting...');
-                                // Form will submit
-                            } else {
-                                console.log('Form validation failed');
-                                form.reportValidity();
-                            }
+                    // Return true to allow submission
+                    return true;
+                };
+            }
+            
+            // Also ensure button works
+            var btn = document.getElementById('adminLoginBtn');
+            if (btn) {
+                btn.onclick = function(e) {
+                    console.log('Button clicked');
+                    var form = document.getElementById('adminLoginForm');
+                    if (form) {
+                        // Trigger form submission
+                        if (form.checkValidity()) {
+                            form.submit();
                         }
-                    }, false);
-                }
+                    }
+                    return false; // Prevent default to use form.submit()
+                };
             }
         });
     </script>

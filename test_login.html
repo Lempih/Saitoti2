@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Login</title>
+</head>
+<body>
+    <h2>Simple Form Test</h2>
+    <form action="login.php" method="post">
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <input type="submit" name="login_submit" value="Sign In">
+    </form>
+    
+    <script>
+        document.querySelector('form').addEventListener('submit', function(e) {
+            console.log('Form submitting!');
+            alert('Form is submitting!');
+            // Don't prevent default
+        });
+    </script>
+</body>
+</html>
+
