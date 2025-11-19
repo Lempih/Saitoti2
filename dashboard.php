@@ -14,7 +14,6 @@
         $total_results = [0];
     }
 ?>
-        
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,10 +22,9 @@
     <link rel="stylesheet" href="./css/home.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
-    <link rel="stylesheet" href="normalize.css">
     <script src="./js/main.js"></script>
     <script src="./js/toast.js"></script>
-    <title>Control Panel - Academic Results System</title>
+    <title>Admin Dashboard - Academic Results System</title>
     <style>
         .main h2 {
             text-align: center;
@@ -35,64 +33,43 @@
             font-size: 2rem;
             font-weight: 700;
         }
+        .breadcrumb {
+            padding: 15px 40px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.9rem;
+        }
+        .breadcrumb a {
+            color: white;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-        
-    <div class="title">
-        <a href="dashboard.php"><img src="./images/logo1.png" alt="Logo" class="logo"></a>
-        <span class="heading">Control Panel</span>
-        <a href="logout.php" style="color: #27ae60">
-            <span class="fa fa-sign-out fa-2x">Logout</span>
-        </a>
-    </div>
-
-    <div class="nav">
-        <ul>
-            <li class="dropdown" onclick="toggleDisplay('1')">
-                <a href="" class="dropbtn">Course Management &nbsp
-                    <span class="fa fa-angle-down"></span>
-                </a>
-                <div class="dropdown-content" id="1">
-                    <a href="add_classes.php">Create New Course</a>
-                    <a href="manage_classes.php">View All Courses</a>
-                </div>
-            </li>
-            <li class="dropdown" onclick="toggleDisplay('2')">
-                <a href="#" class="dropbtn">Student Management &nbsp
-                    <span class="fa fa-angle-down"></span>
-                </a>
-                <div class="dropdown-content" id="2">
-                    <a href="add_students.php">Register Student</a>
-                    <a href="manage_students.php">View All Students</a>
-                </div>
-            </li>
-            <li class="dropdown" onclick="toggleDisplay('3')">
-                <a href="#" class="dropbtn">Results Management &nbsp
-                    <span class="fa fa-angle-down"></span>
-                </a>
-                <div class="dropdown-content" id="3">
-                    <a href="add_results.php">Enter Examination Results</a>
-                    <a href="manage_results.php">Manage Results</a>
-                </div>
-            </li>
-        </ul>
+    <?php include('includes/admin_nav.php'); ?>
+    
+    <div class="breadcrumb">
+        <a href="dashboard.php"><i class="fa fa-home"></i> Dashboard</a>
     </div>
 
     <div class="main">
-        <h2>System Overview</h2>
+        <h2><i class="fa fa-dashboard"></i> System Overview</h2>
         <div class="stat-card">
-            <p><strong>Total Courses:</strong> <?php echo $total_courses[0]; ?></p>
+            <p><i class="fa fa-book"></i> <strong>Total Courses:</strong> <?php echo $total_courses[0]; ?></p>
         </div>
         <div class="stat-card">
-            <p><strong>Total Students:</strong> <?php echo $total_students[0]; ?></p>
+            <p><i class="fa fa-users"></i> <strong>Total Students:</strong> <?php echo $total_students[0]; ?></p>
         </div>
         <div class="stat-card">
-            <p><strong>Total Results Recorded:</strong> <?php echo $total_results[0]; ?></p>
+            <p><i class="fa fa-file-text"></i> <strong>Total Results Recorded:</strong> <?php echo $total_results[0]; ?></p>
         </div>
     </div>
 
     <div class="footer">
+        <p>&copy; 2024 Academic Results Management System</p>
     </div>
 
     <script>

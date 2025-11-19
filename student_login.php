@@ -63,6 +63,14 @@
     <div class="title">
         <span>Student Portal</span>
     </div>
+    <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+        <a href="index.html" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600; padding: 8px 15px; border-radius: 20px; background: rgba(255,255,255,0.2); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+            <i class="fa fa-home"></i> Home
+        </a>
+        <a href="student_signup.php" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600; padding: 8px 15px; border-radius: 20px; background: rgba(255,255,255,0.2); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+            <i class="fa fa-user-plus"></i> Signup
+        </a>
+    </div>
 
     <div class="main">
         <div class="login">
@@ -84,7 +92,7 @@
             </form>    
         </div>
         <div class="search">
-            <form action="./student.php" method="get">
+            <form action="./student.php" method="get" id="quickResultForm">
                 <fieldset>
                     <legend class="heading">
                         <i class="fa fa-search"></i> Quick Result Check
@@ -105,12 +113,12 @@
                                 }
                                 echo '</select>';
                             } else {
-                                echo '<p style="color: #e74c3c; padding: 10px; text-align: center;">No courses available</p>';
+                                echo '<p style="color: #e74c3c; padding: 10px; text-align: center; font-size: 0.9rem;">No courses available yet</p>';
                             }
                         }
                     ?>
 
-                    <input type="number" name="rollno" placeholder="Enter Roll Number" required>
+                    <input type="number" name="rollno" placeholder="Enter Roll Number" required min="1">
                     <input type="submit" value="View Results">
                     <p style="text-align: center; margin-top: 20px; color: #666; font-size: 0.9rem;">
                         Check results without logging in
@@ -121,7 +129,6 @@
     </div>
 
     <script>
-        // Show toast notifications
         <?php if (isset($_SESSION['error'])): ?>
             showError('<?php echo addslashes($_SESSION['error']); ?>');
             <?php unset($_SESSION['error']); ?>
@@ -132,7 +139,6 @@
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
-        // Form submission handling
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             var btn = document.getElementById('loginBtn');
             btn.disabled = true;

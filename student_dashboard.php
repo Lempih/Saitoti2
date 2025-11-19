@@ -29,7 +29,6 @@
         $result_row = null;
     }
 ?>
-        
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -124,16 +123,26 @@
             color: #ddd;
             margin-bottom: 20px;
         }
+        .breadcrumb {
+            padding: 15px 40px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.9rem;
+        }
+        .breadcrumb a {
+            color: white;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
-        
-    <div class="title">
-        <a href="student_dashboard.php"><img src="./images/logo1.png" alt="Logo" class="logo"></a>
-        <span class="heading">Student Dashboard</span>
-        <a href="student_logout.php" style="color: #27ae60">
-            <span class="fa fa-sign-out fa-2x">Logout</span>
-        </a>
+    <?php include('includes/student_nav.php'); ?>
+    
+    <div class="breadcrumb">
+        <a href="student_dashboard.php"><i class="fa fa-home"></i> My Dashboard</a>
     </div>
 
     <div class="main">
@@ -204,7 +213,6 @@
     </div>
 
     <script>
-        // Show toast notifications
         <?php if (isset($_SESSION['error'])): ?>
             showError('<?php echo addslashes($_SESSION['error']); ?>');
             <?php unset($_SESSION['error']); ?>

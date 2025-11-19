@@ -52,15 +52,15 @@
     <div class="title">
         <span>Academic Results Management System</span>
     </div>
-    <div style="text-align: center; margin-top: 20px;">
-        <a href="student_signup.php" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600;">
+    <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+        <a href="index.html" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600; padding: 8px 15px; border-radius: 20px; background: rgba(255,255,255,0.2); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+            <i class="fa fa-home"></i> Home
+        </a>
+        <a href="student_signup.php" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600; padding: 8px 15px; border-radius: 20px; background: rgba(255,255,255,0.2); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
             <i class="fa fa-user-plus"></i> Student Signup
         </a>
-        <a href="student_login.php" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600;">
+        <a href="student_login.php" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600; padding: 8px 15px; border-radius: 20px; background: rgba(255,255,255,0.2); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
             <i class="fa fa-sign-in"></i> Student Login
-        </a>
-        <a href="index.html" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600;">
-            <i class="fa fa-home"></i> Home
         </a>
     </div>
 
@@ -68,17 +68,20 @@
         <div class="login">
             <form action="" method="post" name="admin_login_form" id="adminLoginForm">
                 <fieldset>
-                    <legend class="heading">Administrator Access</legend>
+                    <legend class="heading"><i class="fa fa-user-shield"></i> Administrator Access</legend>
                     <input type="text" name="username" placeholder="Username" autocomplete="off" required>
                     <input type="password" name="password" placeholder="Password" autocomplete="off" required>
                     <input type="submit" value="Sign In" name="login_submit" id="adminLoginBtn">
+                    <p style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9rem;">
+                        Default: <strong>administrator</strong> / <strong>admin2024</strong>
+                    </p>
                 </fieldset>
             </form>    
         </div>
         <div class="search">
-            <form action="./student.php" method="get">
+            <form action="./student.php" method="get" id="quickResultForm">
                 <fieldset>
-                    <legend class="heading">Student Portal</legend>
+                    <legend class="heading"><i class="fa fa-search"></i> Quick Result Check</legend>
 
                     <?php
                         if ($db_connection) {
@@ -95,12 +98,12 @@
                                 }
                                 echo '</select>';
                             } else {
-                                echo '<p style="color: #e74c3c; padding: 10px; text-align: center;">No courses available</p>';
+                                echo '<p style="color: #e74c3c; padding: 10px; text-align: center; font-size: 0.9rem;">No courses available yet</p>';
                             }
                         }
                     ?>
 
-                    <input type="number" name="rollno" placeholder="Enter Roll Number" required>
+                    <input type="number" name="rollno" placeholder="Enter Roll Number" required min="1">
                     <input type="submit" value="View Results">
                     <p style="text-align: center; margin-top: 20px; color: #666; font-size: 0.9rem;">
                         Check results without logging in
@@ -111,7 +114,6 @@
     </div>
 
     <script>
-        // Show toast notifications
         <?php if (isset($_SESSION['error'])): ?>
             showError('<?php echo addslashes($_SESSION['error']); ?>');
             <?php unset($_SESSION['error']); ?>
@@ -122,7 +124,6 @@
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
-        // Form submission handling
         document.getElementById('adminLoginForm').addEventListener('submit', function(e) {
             var btn = document.getElementById('adminLoginBtn');
             btn.disabled = true;

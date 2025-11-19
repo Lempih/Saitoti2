@@ -1,3 +1,8 @@
+<?php
+    session_start();
+    require_once('db_config.php');
+    require_once('auth_check.php');
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,79 +14,74 @@
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link rel="stylesheet" type='text/css' href="css/manage.css">
     <script src="./js/main.js"></script>
-    <title>Course Management</title>
+    <script src="./js/toast.js"></script>
+    <title>Course Management - Academic Results System</title>
+    <style>
+        .breadcrumb {
+            padding: 15px 40px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.9rem;
+        }
+        .breadcrumb a {
+            color: white;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
-        
-    <div class="title">
-        <a href="dashboard.php"><img src="./images/logo1.png" alt="Logo" class="logo"></a>
-        <span class="heading">Control Panel</span>
-        <a href="logout.php" style="color: white"><span class="fa fa-sign-out fa-2x">Logout</span></a>
-    </div>
-
-    <div class="nav">
-        <ul>
-            <li class="dropdown" onclick="toggleDisplay('1')">
-                <a href="" class="dropbtn">Course Management &nbsp
-                    <span class="fa fa-angle-down"></span>
-                </a>
-                <div class="dropdown-content" id="1">
-                    <a href="add_classes.php">Create New Course</a>
-                    <a href="manage_classes.php">View All Courses</a>
-                </div>
-            </li>
-            <li class="dropdown" onclick="toggleDisplay('2')">
-                <a href="#" class="dropbtn">Student Management &nbsp
-                    <span class="fa fa-angle-down"></span>
-                </a>
-                <div class="dropdown-content" id="2">
-                    <a href="add_students.php">Register Student</a>
-                    <a href="manage_students.php">View All Students</a>
-                </div>
-            </li>
-            <li class="dropdown" onclick="toggleDisplay('3')">
-                <a href="#" class="dropbtn">Results Management &nbsp
-                    <span class="fa fa-angle-down"></span>
-                </a>
-                <div class="dropdown-content" id="3">
-                    <a href="add_results.php">Enter Examination Results</a>
-                    <a href="manage_results.php">Manage Results</a>
-                </div>
-            </li>
-        </ul>
+    <?php include('includes/admin_nav.php'); ?>
+    
+    <div class="breadcrumb">
+        <a href="dashboard.php"><i class="fa fa-home"></i> Dashboard</a> / 
+        <span>Course Management</span>
     </div>
 
     <div class="main">
         <?php
-            require_once('db_config.php');
-            require_once('auth_check.php');
+            if ($db_connection) {
+                $query = "SELECT course_name, course_id FROM courses ORDER BY course_id ASC";
+                $result = mysqli_query($db_connection, $query);
 
-            $query = "SELECT course_name, course_id FROM courses ORDER BY course_id ASC";
-            $result = mysqli_query($db_connection, $query);
+                if (mysqli_num_rows($result) > 0) {
+                   echo "<table>
+                    <caption>All Registered Courses</caption>
+                    <tr>
+                    <th>Course ID</th>
+                    <th>Course Name</th>
+                    </tr>";
 
-            if (mysqli_num_rows($result) > 0) {
-               echo "<table>
-                <caption>All Registered Courses</caption>
-                <tr>
-                <th>Course ID</th>
-                <th>Course Name</th>
-                </tr>";
+                    while($row = mysqli_fetch_array($result))
+                      {
+                      echo "<tr>";
+                      echo "<td>" . htmlspecialchars($row['course_id']) . "</td>";
+                      echo "<td>" . htmlspecialchars($row['course_name']) . "</td>";
+                      echo "</tr>";
+                      }
 
-                while($row = mysqli_fetch_array($result))
-                  {
-                  echo "<tr>";
-                  echo "<td>" . htmlspecialchars($row['course_id']) . "</td>";
-                  echo "<td>" . htmlspecialchars($row['course_name']) . "</td>";
-                  echo "</tr>";
-                  }
-
-                echo "</table>";
+                    echo "</table>";
+                } else {
+                    echo "<p style='text-align: center; padding: 20px;'>No courses registered yet. <a href='add_classes.php' style='color: #27ae60; text-decoration: none; font-weight: 600;'>Create your first course</a></p>";
+                }
             } else {
-                echo "<p style='text-align: center; padding: 20px;'>No courses registered yet.</p>";
+                echo "<p style='text-align: center; padding: 20px; color: #e74c3c;'>Database connection error. Please try again later.</p>";
             }
         ?>
-        
     </div>
 
+    <script>
+        <?php if (isset($_SESSION['error'])): ?>
+            showError('<?php echo addslashes($_SESSION['error']); ?>');
+            <?php unset($_SESSION['error']); ?>
+        <?php endif; ?>
+
+        <?php if (isset($_SESSION['success'])): ?>
+            showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
+            <?php unset($_SESSION['success']); ?>
+        <?php endif; ?>
+    </script>
 </body>
 </html>

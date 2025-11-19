@@ -155,6 +155,14 @@
     <div class="title">
         <span>Student Registration</span>
     </div>
+    <div style="text-align: center; margin-top: 20px; margin-bottom: 20px;">
+        <a href="index.html" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600; padding: 8px 15px; border-radius: 20px; background: rgba(255,255,255,0.2); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+            <i class="fa fa-home"></i> Home
+        </a>
+        <a href="student_login.php" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600; padding: 8px 15px; border-radius: 20px; background: rgba(255,255,255,0.2); transition: all 0.3s ease;" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+            <i class="fa fa-sign-in"></i> Login
+        </a>
+    </div>
 
     <div class="main" style="grid-template-columns: 1fr; max-width: 600px; margin: 100px auto 0;">
         <div class="login">
@@ -201,7 +209,6 @@
     </div>
 
     <script>
-        // Show toast notifications
         <?php if (isset($_SESSION['error'])): ?>
             showError('<?php echo addslashes($_SESSION['error']); ?>');
             <?php unset($_SESSION['error']); ?>
@@ -220,12 +227,10 @@
             var rollNumber = document.getElementById('roll_number').value;
             var course = document.getElementById('course_name').value;
 
-            // Show loading state
             var submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.value = 'Registering...';
 
-            // Client-side validation
             if (password !== confirmPassword) {
                 showError('Passwords do not match!');
                 submitBtn.disabled = false;
@@ -264,7 +269,6 @@
             return true;
         }
 
-        // Re-enable button if form doesn't submit (in case of error)
         window.addEventListener('load', function() {
             var submitBtn = document.getElementById('submitBtn');
             if (submitBtn) {
