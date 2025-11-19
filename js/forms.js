@@ -4,29 +4,42 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Handle all form submissions
+    // Handle all form submissions - but DON'T prevent default
     var forms = document.querySelectorAll('form');
     forms.forEach(function(form) {
+        // Check if form already has a submit handler
+        if (form.dataset.handlerAdded) return;
+        form.dataset.handlerAdded = 'true';
+        
         form.addEventListener('submit', function(e) {
+            // DO NOT call e.preventDefault() - let form submit normally
             var submitBtn = form.querySelector('input[type="submit"], button[type="submit"]');
             if (submitBtn && !submitBtn.disabled) {
                 // Show loading state
-                var originalValue = submitBtn.value || submitBtn.textContent;
                 submitBtn.disabled = true;
                 if (submitBtn.tagName === 'INPUT') {
-                    submitBtn.value = submitBtn.value.replace('Submit', 'Submitting...')
-                                                     .replace('Login', 'Logging in...')
-                                                     .replace('Register', 'Registering...')
-                                                     .replace('Sign In', 'Signing in...')
-                                                     .replace('Create', 'Creating...')
-                                                     .replace('Update', 'Updating...')
-                                                     .replace('Delete', 'Deleting...')
-                                                     || 'Processing...';
+                    var currentValue = submitBtn.value;
+                    if (currentValue.indexOf('Sign In') !== -1) {
+                        submitBtn.value = 'Signing in...';
+                    } else if (currentValue.indexOf('Login') !== -1) {
+                        submitBtn.value = 'Logging in...';
+                    } else if (currentValue.indexOf('Submit') !== -1) {
+                        submitBtn.value = 'Submitting...';
+                    } else if (currentValue.indexOf('Register') !== -1) {
+                        submitBtn.value = 'Registering...';
+                    } else if (currentValue.indexOf('Create') !== -1) {
+                        submitBtn.value = 'Creating...';
+                    } else if (currentValue.indexOf('Update') !== -1) {
+                        submitBtn.value = 'Updating...';
+                    } else if (currentValue.indexOf('Delete') !== -1) {
+                        submitBtn.value = 'Deleting...';
+                    } else {
+                        submitBtn.value = 'Processing...';
+                    }
                 }
-                // Allow form to submit - don't prevent default
-                return true;
+                // Form will submit normally - we're not preventing it
             }
-        });
+        }, false); // Use capture phase false
     });
 
     // Handle all button clicks

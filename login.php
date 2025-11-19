@@ -65,7 +65,7 @@
 
     <div class="main">
         <div class="login">
-            <form action="" method="post" name="admin_login_form" id="adminLoginForm">
+            <form action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post" name="admin_login_form" id="adminLoginForm" novalidate>
                 <fieldset>
                     <legend class="heading"><i class="fa fa-user-shield"></i> Administrator Access</legend>
                     <input type="text" name="username" placeholder="Username" autocomplete="off" required>
@@ -117,45 +117,63 @@
         // Wait for DOM and toast to be ready
         document.addEventListener('DOMContentLoaded', function() {
             <?php if (isset($_SESSION['error'])): ?>
-                if (typeof showError === 'function') {
-                    showError('<?php echo addslashes($_SESSION['error']); ?>');
-                } else {
-                    setTimeout(function() {
-                        if (typeof showError === 'function') {
-                            showError('<?php echo addslashes($_SESSION['error']); ?>');
-                        } else {
-                            alert('<?php echo addslashes($_SESSION['error']); ?>');
-                        }
-                    }, 100);
-                }
+                setTimeout(function() {
+                    if (typeof showError === 'function') {
+                        showError('<?php echo addslashes($_SESSION['error']); ?>');
+                    } else {
+                        alert('<?php echo addslashes($_SESSION['error']); ?>');
+                    }
+                }, 200);
                 <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
 
             <?php if (isset($_SESSION['success'])): ?>
-                if (typeof showSuccess === 'function') {
-                    showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
-                } else {
-                    setTimeout(function() {
-                        if (typeof showSuccess === 'function') {
-                            showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
-                        }
-                    }, 100);
-                }
+                setTimeout(function() {
+                    if (typeof showSuccess === 'function') {
+                        showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
+                    }
+                }, 200);
                 <?php unset($_SESSION['success']); ?>
             <?php endif; ?>
 
-            // Form submission handler
+            // Form submission handler - DO NOT prevent default
             var adminForm = document.getElementById('adminLoginForm');
             if (adminForm) {
+                // Remove any existing handlers first
+                var newForm = adminForm.cloneNode(true);
+                adminForm.parentNode.replaceChild(newForm, adminForm);
+                adminForm = newForm;
+                
                 adminForm.addEventListener('submit', function(e) {
+                    console.log('Form submitting...');
+                    // Don't prevent default - let form submit normally
                     var btn = document.getElementById('adminLoginBtn');
-                    if (btn) {
+                    if (btn && !btn.disabled) {
                         btn.disabled = true;
                         btn.value = 'Signing in...';
                     }
-                    // Allow form to submit normally
-                    return true;
-                });
+                    // Form will submit normally - no e.preventDefault()
+                }, false);
+                
+                // Also handle button click as fallback
+                var btn = document.getElementById('adminLoginBtn');
+                if (btn) {
+                    btn.addEventListener('click', function(e) {
+                        console.log('Button clicked');
+                        // Don't prevent - let form submit
+                        var form = document.getElementById('adminLoginForm');
+                        if (form) {
+                            // Check if form is valid
+                            if (form.checkValidity()) {
+                                console.log('Form is valid, submitting...');
+                                // Form will submit
+                            } else {
+                                console.log('Form validation failed');
+                                form.reportValidity();
+                            }
+                        }
+                    }, false);
+                }
             }
         });
     </script>
