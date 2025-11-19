@@ -12,6 +12,17 @@
     <div class="title">
         <span>Academic Results Management System</span>
     </div>
+    <div style="text-align: center; margin-top: 20px;">
+        <a href="student_signup.php" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600;">
+            <i class="fa fa-user-plus"></i> Student Signup
+        </a>
+        <a href="student_login.php" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600;">
+            <i class="fa fa-sign-in"></i> Student Login
+        </a>
+        <a href="index.html" style="color: white; text-decoration: none; margin: 0 15px; font-weight: 600;">
+            <i class="fa fa-home"></i> Home
+        </a>
+    </div>
 
     <div class="main">
         <div class="login">
