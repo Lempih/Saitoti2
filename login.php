@@ -136,35 +136,17 @@
                 <?php unset($_SESSION['success']); ?>
             <?php endif; ?>
 
-            // Simple form submission handler
+            // Simple form submission handler - just show loading state
             var adminForm = document.getElementById('adminLoginForm');
             if (adminForm) {
-                adminForm.onsubmit = function(e) {
-                    console.log('Form submit event fired');
+                adminForm.addEventListener('submit', function(e) {
+                    // Don't prevent default - let form submit
                     var btn = document.getElementById('adminLoginBtn');
-                    if (btn) {
+                    if (btn && !btn.disabled) {
                         btn.disabled = true;
                         btn.value = 'Signing in...';
                     }
-                    // Return true to allow submission
-                    return true;
-                };
-            }
-            
-            // Also ensure button works
-            var btn = document.getElementById('adminLoginBtn');
-            if (btn) {
-                btn.onclick = function(e) {
-                    console.log('Button clicked');
-                    var form = document.getElementById('adminLoginForm');
-                    if (form) {
-                        // Trigger form submission
-                        if (form.checkValidity()) {
-                            form.submit();
-                        }
-                    }
-                    return false; // Prevent default to use form.submit()
-                };
+                });
             }
         });
     </script>
