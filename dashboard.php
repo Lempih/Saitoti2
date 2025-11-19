@@ -57,14 +57,19 @@
 
     <div class="main">
         <h2><i class="fa fa-dashboard"></i> System Overview</h2>
-        <div class="stat-card">
-            <p><i class="fa fa-book"></i> <strong>Total Courses:</strong> <?php echo $total_courses[0]; ?></p>
-        </div>
-        <div class="stat-card">
-            <p><i class="fa fa-users"></i> <strong>Total Students:</strong> <?php echo $total_students[0]; ?></p>
-        </div>
-        <div class="stat-card">
-            <p><i class="fa fa-file-text"></i> <strong>Total Results Recorded:</strong> <?php echo $total_results[0]; ?></p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; margin-top: 30px;">
+            <div class="stat-card">
+                <i class="fa fa-book"></i>
+                <p><strong>Total Courses</strong><br><?php echo $total_courses[0]; ?></p>
+            </div>
+            <div class="stat-card">
+                <i class="fa fa-users"></i>
+                <p><strong>Total Students</strong><br><?php echo $total_students[0]; ?></p>
+            </div>
+            <div class="stat-card">
+                <i class="fa fa-file-text"></i>
+                <p><strong>Total Results</strong><br><?php echo $total_results[0]; ?></p>
+            </div>
         </div>
     </div>
 
