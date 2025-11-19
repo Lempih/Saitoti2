@@ -15,16 +15,16 @@
 
     <div class="main" style="grid-template-columns: 1fr; max-width: 600px; margin: 100px auto 0;">
         <div class="login">
-            <form action="" method="post" name="student_signup_form">
+            <form action="" method="post" name="student_signup_form" id="signupForm" onsubmit="return validateForm()">
                 <fieldset>
                     <legend class="heading">
                         <i class="fa fa-user-plus"></i> Create Student Account
                     </legend>
-                    <input type="text" name="full_name" placeholder="Full Name" autocomplete="off" required>
-                    <input type="email" name="email" placeholder="Email Address" autocomplete="off" required>
-                    <input type="number" name="roll_number" placeholder="Roll Number" autocomplete="off" required>
-                    <input type="password" name="password" placeholder="Password (min 6 characters)" autocomplete="off" required minlength="6">
-                    <input type="password" name="confirm_password" placeholder="Confirm Password" autocomplete="off" required>
+                    <input type="text" name="full_name" id="full_name" placeholder="Full Name" autocomplete="off" required minlength="3">
+                    <input type="email" name="email" id="email" placeholder="Email Address" autocomplete="off" required>
+                    <input type="number" name="roll_number" id="roll_number" placeholder="Roll Number" autocomplete="off" required min="1">
+                    <input type="password" name="password" id="password" placeholder="Password (min 6 characters)" autocomplete="off" required minlength="6">
+                    <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm Password" autocomplete="off" required>
                     
                     <?php
                         require_once('db_config.php');
@@ -50,7 +50,7 @@
                         }
                     ?>
                     
-                    <input type="submit" value="Register" name="signup_submit">
+                    <input type="submit" value="Register" name="signup_submit" id="submitBtn">
                     <p style="text-align: center; margin-top: 20px; color: #666;">
                         Already have an account? <a href="student_login.php" style="color: #667eea; text-decoration: none; font-weight: 600;">Login here</a>
                     </p>
@@ -58,6 +58,69 @@
             </form>    
         </div>
     </div>
+
+    <script>
+        function validateForm() {
+            var password = document.getElementById('password').value;
+            var confirmPassword = document.getElementById('confirm_password').value;
+            var fullName = document.getElementById('full_name').value;
+            var email = document.getElementById('email').value;
+            var rollNumber = document.getElementById('roll_number').value;
+            var course = document.querySelector('select[name="course_name"]').value;
+
+            // Show loading state
+            var submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.value = 'Registering...';
+
+            // Client-side validation
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                submitBtn.disabled = false;
+                submitBtn.value = 'Register';
+                return false;
+            }
+
+            if (password.length < 6) {
+                alert('Password must be at least 6 characters long.');
+                submitBtn.disabled = false;
+                submitBtn.value = 'Register';
+                return false;
+            }
+
+            if (fullName.length < 3) {
+                alert('Full name must be at least 3 characters long.');
+                submitBtn.disabled = false;
+                submitBtn.value = 'Register';
+                return false;
+            }
+
+            if (!email.includes('@')) {
+                alert('Please enter a valid email address.');
+                submitBtn.disabled = false;
+                submitBtn.value = 'Register';
+                return false;
+            }
+
+            if (!course) {
+                alert('Please select a course.');
+                submitBtn.disabled = false;
+                submitBtn.value = 'Register';
+                return false;
+            }
+
+            return true;
+        }
+
+        // Re-enable button if form doesn't submit (in case of error)
+        window.addEventListener('load', function() {
+            var submitBtn = document.getElementById('submitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.value = 'Register';
+            }
+        });
+    </script>
 
 </body>
 </html>
