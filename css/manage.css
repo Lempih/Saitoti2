@@ -16,7 +16,9 @@
 }
 
 .main th{
-	color: #61c232;
+	color: #a8e6cf;
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	padding: 12px 30px;
 }
 
 .main tr:hover {

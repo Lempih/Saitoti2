@@ -8,42 +8,43 @@
     <link rel="stylesheet" type="text/css" href="./css/form.css" media="all">
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
-    <title>Add Students</title>
+    <script src="./js/main.js"></script>
+    <title>Register New Student</title>
 </head>
 <body>
         
     <div class="title">
-        <a href="dashboard.php"><img src="./images/logo1.png" alt="" class="logo"></a>
-        <span class="heading">Dashboard</span>
+        <a href="dashboard.php"><img src="./images/logo1.png" alt="Logo" class="logo"></a>
+        <span class="heading">Control Panel</span>
         <a href="logout.php" style="color: white"><span class="fa fa-sign-out fa-2x">Logout</span></a>
     </div>
 
     <div class="nav">
         <ul>
             <li class="dropdown" onclick="toggleDisplay('1')">
-                <a href="" class="dropbtn">Classes &nbsp
+                <a href="" class="dropbtn">Course Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="1">
-                    <a href="add_classes.php">Add Class</a>
-                    <a href="manage_classes.php">Manage Class</a>
+                    <a href="add_classes.php">Create New Course</a>
+                    <a href="manage_classes.php">View All Courses</a>
                 </div>
             </li>
             <li class="dropdown" onclick="toggleDisplay('2')">
-                <a href="#" class="dropbtn">Students &nbsp
+                <a href="#" class="dropbtn">Student Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="2">
-                    <a href="add_students.php">Add Students</a>
-                    <a href="manage_students.php">Manage Students</a>
+                    <a href="add_students.php">Register Student</a>
+                    <a href="manage_students.php">View All Students</a>
                 </div>
             </li>
             <li class="dropdown" onclick="toggleDisplay('3')">
-                <a href="#" class="dropbtn">Results &nbsp
+                <a href="#" class="dropbtn">Results Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="3">
-                    <a href="add_results.php">Add Results</a>
+                    <a href="add_results.php">Enter Examination Results</a>
                     <a href="manage_results.php">Manage Results</a>
                 </div>
             </li>
@@ -53,70 +54,91 @@
     <div class="main">
         <form action="" method="post">
             <fieldset>
-                <legend>Add Student</legend>
-                <input type="text" name="student_name" placeholder="Student Name">
-                <input type="text" name="roll_no" placeholder="Roll No">
+                <legend>Register New Student</legend>
+                <input type="text" name="student_name" placeholder="Full Name" required>
+                <input type="number" name="roll_number" placeholder="Roll Number" required>
                 <?php
-                    include('init.php');
-                    include('session.php');
+                    require_once('db_config.php');
+                    require_once('auth_check.php');
                     
-                    $class_result=mysqli_query($conn,"SELECT `name` FROM `class`");
-                        echo '<select name="class_name">';
-                        echo '<option selected disabled>Select Class</option>';
-                    while($row = mysqli_fetch_array($class_result)){
-                        $display=$row['name'];
-                        echo '<option value="'.$display.'">'.$display.'</option>';
+                    $course_query = "SELECT course_name FROM courses ORDER BY course_name ASC";
+                    $course_result = mysqli_query($db_connection, $course_query);
+                    
+                    echo '<select name="course_name" required>';
+                    echo '<option value="" selected disabled>Select Course</option>';
+                    
+                    while($course_row = mysqli_fetch_array($course_result)){
+                        $course_display = $course_row['course_name'];
+                        echo '<option value="'.$course_display.'">'.$course_display.'</option>';
                     }
-                    echo'</select>'
+                    echo '</select>';
                 ?>
-                <input type="submit" value="Submit">
+                <input type="submit" value="Register Student" name="submit_student">
             </fieldset>
         </form>
     </div>
 
     <div class="footer">
-        <!-- <span>&copy Designed & Coded By Jibin Thomas</span> -->
     </div>
 </body>
 </html>
 
 <?php
 
-    if(isset($_POST['student_name'],$_POST['roll_no'])) {
-        $name=$_POST['student_name'];
-        $rno=$_POST['roll_no'];
-        if(!isset($_POST['class_name']))
-            $class_name=null;
-        else
-            $class_name=$_POST['class_name'];
+    if(isset($_POST['student_name'], $_POST['roll_number'], $_POST['submit_student'])) {
+        require_once('db_config.php');
+        require_once('auth_check.php');
+        
+        $student_name = trim($_POST['student_name']);
+        $roll_number = intval($_POST['roll_number']);
+        $course_name = isset($_POST['course_name']) ? trim($_POST['course_name']) : null;
 
-        // validation
-        if (empty($name) or empty($rno) or empty($class_name) or preg_match("/[a-z]/i",$rno) or !preg_match("/^[a-zA-Z ]*$/",$name)) {
-            if(empty($name))
-                echo '<p class="error">Please enter name</p>';
-            if(empty($class_name))
-                echo '<p class="error">Please select your class</p>';
-            if(empty($rno))
-                echo '<p class="error">Please enter your roll number</p>';
-            if(preg_match("/[a-z]/i",$rno))
-                echo '<p class="error">Please enter valid roll number</p>';
-            if (!preg_match("/^[a-zA-Z ]*$/",$name)) {
-                    echo '<p class="error">No numbers or symbols allowed in name</p>'; 
-                  }
+        // Validation
+        if (empty($student_name) || empty($roll_number) || empty($course_name) || $roll_number <= 0) {
+            if(empty($student_name))
+                echo '<p class="error">Please enter student name</p>';
+            if(empty($course_name))
+                echo '<p class="error">Please select a course</p>';
+            if(empty($roll_number) || $roll_number <= 0)
+                echo '<p class="error">Please enter a valid roll number</p>';
+            if (!preg_match("/^[a-zA-Z\s]+$/", $student_name)) {
+                echo '<p class="error">Name should only contain letters and spaces</p>'; 
+            }
             exit();
         }
+
+        // Check if student with same name and roll number already exists
+        $check_query = "SELECT full_name, roll_number FROM student_records WHERE full_name = ? AND roll_number = ?";
+        $check_stmt = mysqli_prepare($db_connection, $check_query);
+        mysqli_stmt_bind_param($check_stmt, "si", $student_name, $roll_number);
+        mysqli_stmt_execute($check_stmt);
+        $check_result = mysqli_stmt_get_result($check_stmt);
         
-        $sql = "INSERT INTO `students` (`name`, `rno`, `class_name`) VALUES ('$name', '$rno', '$class_name')";
-        $result=mysqli_query($conn,$sql);
+        if(mysqli_num_rows($check_result) > 0) {
+            echo '<script language="javascript">';
+            echo 'alert("Student with this name and roll number already exists!")';
+            echo '</script>';
+            mysqli_stmt_close($check_stmt);
+            exit();
+        }
+        mysqli_stmt_close($check_stmt);
+        
+        // Insert student using prepared statement
+        $insert_query = "INSERT INTO student_records (full_name, roll_number, enrolled_course) VALUES (?, ?, ?)";
+        $stmt = mysqli_prepare($db_connection, $insert_query);
+        mysqli_stmt_bind_param($stmt, "sis", $student_name, $roll_number, $course_name);
+        $result = mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
         
         if (!$result) {
             echo '<script language="javascript">';
-            echo 'alert("Invalid Details")';
+            echo 'alert("Error: Could not register student. Please check the details.")';
             echo '</script>';
         }
         else{
             echo '<script language="javascript">';
-            echo 'alert("Successful")';
+            echo 'alert("Student registered successfully!")';
+            echo 'window.location.href = "add_students.php";';
             echo '</script>';
         }
 

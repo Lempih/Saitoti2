@@ -1,7 +1,7 @@
 body{
     margin: 0;
     font-family: 'Roboto', sans-serif;
-    background-color: #222629;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
     color: white;
 }
 
@@ -62,7 +62,8 @@ li a,.dropbtn{
 }
 
 li a:hover, .dropdown:hover {
-    background-color: #61892f
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    transition: all 0.3s ease;
 }
 
 li.dropdown {

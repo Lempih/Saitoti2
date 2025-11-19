@@ -8,42 +8,43 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link rel="stylesheet" href="./css/form.css">
-    <title>Dashboard</title>
+    <script src="./js/main.js"></script>
+    <title>Enter Examination Results</title>
 </head>
 <body>
         
     <div class="title">
-        <a href="dashboard.php"><img src="./images/logo1.png" alt="" class="logo"></a>
-        <span class="heading">Dashboard</span>
+        <a href="dashboard.php"><img src="./images/logo1.png" alt="Logo" class="logo"></a>
+        <span class="heading">Control Panel</span>
         <a href="logout.php" style="color: white"><span class="fa fa-sign-out fa-2x">Logout</span></a>
     </div>
 
     <div class="nav">
         <ul>
             <li class="dropdown" onclick="toggleDisplay('1')">
-                <a href="" class="dropbtn">Classes &nbsp
+                <a href="" class="dropbtn">Course Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="1">
-                    <a href="add_classes.php">Add Class</a>
-                    <a href="manage_classes.php">Manage Class</a>
+                    <a href="add_classes.php">Create New Course</a>
+                    <a href="manage_classes.php">View All Courses</a>
                 </div>
             </li>
             <li class="dropdown" onclick="toggleDisplay('2')">
-                <a href="#" class="dropbtn">Students &nbsp
+                <a href="#" class="dropbtn">Student Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="2">
-                    <a href="add_students.php">Add Students</a>
-                    <a href="manage_students.php">Manage Students</a>
+                    <a href="add_students.php">Register Student</a>
+                    <a href="manage_students.php">View All Students</a>
                 </div>
             </li>
             <li class="dropdown" onclick="toggleDisplay('3')">
-                <a href="#" class="dropbtn">Results &nbsp
+                <a href="#" class="dropbtn">Results Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="3">
-                    <a href="add_results.php">Add Results</a>
+                    <a href="add_results.php">Enter Examination Results</a>
                     <a href="manage_results.php">Manage Results</a>
                 </div>
             </li>
@@ -53,32 +54,32 @@
     <div class="main">
         <form action="" method="post">
             <fieldset>
-            <legend>Enter Marks</legend>
+            <legend>Enter Student Marks</legend>
 
                 <?php
-                    include("init.php");
-                    include("session.php");
+                    require_once("db_config.php");
+                    require_once("auth_check.php");
 
-                    $select_class_query="SELECT `name` from `class`";
-                    $class_result=mysqli_query($conn,$select_class_query);
-                    //select class
-                    echo '<select name="class_name">';
-                    echo '<option selected disabled>Select Class</option>';
+                    $course_query = "SELECT course_name FROM courses ORDER BY course_name ASC";
+                    $course_result = mysqli_query($db_connection, $course_query);
                     
-                        while($row = mysqli_fetch_array($class_result)) {
-                            $display=$row['name'];
-                            echo '<option value="'.$display.'">'.$display.'</option>';
-                        }
-                    echo'</select>';                      
+                    echo '<select name="course_name" required>';
+                    echo '<option value="" selected disabled>Select Course</option>';
+                    
+                    while($course_row = mysqli_fetch_array($course_result)) {
+                        $course_display = $course_row['course_name'];
+                        echo '<option value="'.$course_display.'">'.$course_display.'</option>';
+                    }
+                    echo '</select>';                      
                 ?>
 
-                <input type="text" name="rno" placeholder="Roll No">
-                <input type="text" name="p1" id="" placeholder="Paper 1">
-                <input type="text" name="p2" id="" placeholder="Paper 2">
-                <input type="text" name="p3" id="" placeholder="Paper 3">
-                <input type="text" name="p4" id="" placeholder="Paper 4">
-                <input type="text" name="p5" id="" placeholder="Paper 5">
-                <input type="submit" value="Submit">
+                <input type="number" name="roll_number" placeholder="Roll Number" required>
+                <input type="number" name="subject_1" id="" placeholder="Subject 1 Marks" min="0" max="100" required>
+                <input type="number" name="subject_2" id="" placeholder="Subject 2 Marks" min="0" max="100" required>
+                <input type="number" name="subject_3" id="" placeholder="Subject 3 Marks" min="0" max="100" required>
+                <input type="number" name="subject_4" id="" placeholder="Subject 4 Marks" min="0" max="100" required>
+                <input type="number" name="subject_5" id="" placeholder="Subject 5 Marks" min="0" max="100" required>
+                <input type="submit" value="Submit Results" name="submit_results">
             </fieldset>
         </form>
     </div>
@@ -87,54 +88,87 @@
 </html>
 
 <?php
-    if(isset($_POST['rno'],$_POST['p1'],$_POST['p2'],$_POST['p3'],$_POST['p4'],$_POST['p5']))
+    if(isset($_POST['roll_number'], $_POST['subject_1'], $_POST['subject_2'], $_POST['subject_3'], $_POST['subject_4'], $_POST['subject_5'], $_POST['submit_results']))
     {
-        $rno=$_POST['rno'];
-        if(!isset($_POST['class_name']))
-            $class_name=null;
-        else
-            $class_name=$_POST['class_name'];
-        $p1=(int)$_POST['p1'];
-        $p2=(int)$_POST['p2'];
-        $p3=(int)$_POST['p3'];
-        $p4=(int)$_POST['p4'];
-        $p5=(int)$_POST['p5'];
+        require_once("db_config.php");
+        require_once("auth_check.php");
+        
+        $roll_number = intval($_POST['roll_number']);
+        $course_name = isset($_POST['course_name']) ? trim($_POST['course_name']) : null;
+        $subject_1 = intval($_POST['subject_1']);
+        $subject_2 = intval($_POST['subject_2']);
+        $subject_3 = intval($_POST['subject_3']);
+        $subject_4 = intval($_POST['subject_4']);
+        $subject_5 = intval($_POST['subject_5']);
 
-        $marks=$p1+$p2+$p3+$p4+$p5;
-        $percentage=$marks/5;
+        $total_marks = $subject_1 + $subject_2 + $subject_3 + $subject_4 + $subject_5;
+        $grade_percentage = round($total_marks / 5, 2);
 
-        // validation
-        if (empty($class_name) or empty($rno) or $p1>100 or  $p2>100 or $p3>100 or $p4>100 or $p5>100 or $p1<0 or  $p2<0 or $p3<0 or $p4<0 or $p5<0 ) {
-            if(empty($class_name))
-                echo '<p class="error">Please select class</p>';
-            if(empty($rno))
-                echo '<p class="error">Please enter roll number</p>';
-            if(preg_match("/[a-z]/i",$rno))
+        // Validation
+        if (empty($course_name) || empty($roll_number) || 
+            $subject_1 > 100 || $subject_2 > 100 || $subject_3 > 100 || $subject_4 > 100 || $subject_5 > 100 || 
+            $subject_1 < 0 || $subject_2 < 0 || $subject_3 < 0 || $subject_4 < 0 || $subject_5 < 0) {
+            if(empty($course_name))
+                echo '<p class="error">Please select course</p>';
+            if(empty($roll_number) || $roll_number <= 0)
                 echo '<p class="error">Please enter valid roll number</p>';
-            if(preg_match("/[a-z]/i",$marks))
-                echo '<p class="error">Please enter valid marks</p>';
-            if($p1>100 or  $p2>100 or $p3>100 or $p4>100 or $p5>100 or $p1<0 or  $p2<0 or $p3<0 or $p4<0 or $p5<0)
-                echo '<p class="error">Please enter valid marks</p>';
+            if($subject_1 > 100 || $subject_2 > 100 || $subject_3 > 100 || $subject_4 > 100 || $subject_5 > 100 || 
+               $subject_1 < 0 || $subject_2 < 0 || $subject_3 < 0 || $subject_4 < 0 || $subject_5 < 0)
+                echo '<p class="error">Marks must be between 0 and 100</p>';
             exit();
         }
 
-        $name=mysqli_query($conn,"SELECT `name` FROM `students` WHERE `rno`='$rno' and `class_name`='$class_name'");
-        while($row = mysqli_fetch_array($name)) {
-            $display=$row['name'];
-            echo $display;
-         }
-
-        $sql="INSERT INTO `result` (`name`, `rno`, `class`, `p1`, `p2`, `p3`, `p4`, `p5`, `marks`, `percentage`) VALUES ('$display', '$rno', '$class_name', '$p1', '$p2', '$p3', '$p4', '$p5', '$marks', '$percentage')";
-        $sql=mysqli_query($conn,$sql);
-
-        if (!$sql) {
+        // Get student name
+        $name_query = "SELECT full_name FROM student_records WHERE roll_number = ? AND enrolled_course = ?";
+        $name_stmt = mysqli_prepare($db_connection, $name_query);
+        mysqli_stmt_bind_param($name_stmt, "is", $roll_number, $course_name);
+        mysqli_stmt_execute($name_stmt);
+        $name_result = mysqli_stmt_get_result($name_stmt);
+        
+        if(mysqli_num_rows($name_result) == 0) {
             echo '<script language="javascript">';
-            echo 'alert("Invalid Details")';
+            echo 'alert("Student not found in this course!")';
+            echo '</script>';
+            mysqli_stmt_close($name_stmt);
+            exit();
+        }
+        
+        $name_row = mysqli_fetch_assoc($name_result);
+        $student_name = $name_row['full_name'];
+        mysqli_stmt_close($name_stmt);
+
+        // Check if result already exists
+        $check_query = "SELECT roll_number FROM exam_results WHERE roll_number = ? AND course_name = ?";
+        $check_stmt = mysqli_prepare($db_connection, $check_query);
+        mysqli_stmt_bind_param($check_stmt, "is", $roll_number, $course_name);
+        mysqli_stmt_execute($check_stmt);
+        $check_result = mysqli_stmt_get_result($check_stmt);
+        
+        if(mysqli_num_rows($check_result) > 0) {
+            echo '<script language="javascript">';
+            echo 'alert("Result for this student already exists. Please use update function.")';
+            echo '</script>';
+            mysqli_stmt_close($check_stmt);
+            exit();
+        }
+        mysqli_stmt_close($check_stmt);
+
+        // Insert result using prepared statement
+        $insert_query = "INSERT INTO exam_results (student_name, roll_number, course_name, subject_1, subject_2, subject_3, subject_4, subject_5, total_marks, grade_percentage) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = mysqli_prepare($db_connection, $insert_query);
+        mysqli_stmt_bind_param($stmt, "sisiiiiiii", $student_name, $roll_number, $course_name, $subject_1, $subject_2, $subject_3, $subject_4, $subject_5, $total_marks, $grade_percentage);
+        $insert_result = mysqli_stmt_execute($stmt);
+        mysqli_stmt_close($stmt);
+
+        if (!$insert_result) {
+            echo '<script language="javascript">';
+            echo 'alert("Error: Could not save results. Please try again.")';
             echo '</script>';
         }
         else{
             echo '<script language="javascript">';
-            echo 'alert("Successful")';
+            echo 'alert("Results saved successfully!")';
+            echo 'window.location.href = "add_results.php";';
             echo '</script>';
         }
     }

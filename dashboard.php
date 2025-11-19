@@ -1,9 +1,10 @@
 <?php
-    include("init.php");
+    require_once("db_config.php");
     
-    $no_of_classes=mysqli_fetch_array(mysqli_query($conn,"SELECT COUNT(*) FROM `class`"));
-    $no_of_students=mysqli_fetch_array(mysqli_query($conn,"SELECT COUNT(*) FROM `students`"));
-    $no_of_result=mysqli_fetch_array(mysqli_query($conn,"SELECT COUNT(*) FROM `result`"));
+    // Get statistics
+    $total_courses = mysqli_fetch_array(mysqli_query($db_connection, "SELECT COUNT(*) FROM courses"));
+    $total_students = mysqli_fetch_array(mysqli_query($db_connection, "SELECT COUNT(*) FROM student_records"));
+    $total_results = mysqli_fetch_array(mysqli_query($db_connection, "SELECT COUNT(*) FROM exam_results"));
 ?>
         
 <!DOCTYPE html>
@@ -15,7 +16,8 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link rel="stylesheet" href="normalize.css">
-    <title>Dashboard</title>
+    <script src="./js/main.js"></script>
+    <title>Control Panel - Academic Results System</title>
     <style>
         .main{
             border-radius: 10px;
@@ -24,42 +26,49 @@
             padding: 20px;
             margin: 7% 20% 0 20%;
         }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
     </style>
 </head>
 <body>
         
     <div class="title">
-        <a href="dashboard.php"><img src="./images/logo1.png" alt="" class="logo"></a>
-        <span class="heading">Dashboard</span>
+        <a href="dashboard.php"><img src="./images/logo1.png" alt="Logo" class="logo"></a>
+        <span class="heading">Control Panel</span>
         <a href="logout.php" style="color: white"><span class="fa fa-sign-out fa-2x">Logout</span></a>
     </div>
 
     <div class="nav">
         <ul>
             <li class="dropdown" onclick="toggleDisplay('1')">
-                <a href="" class="dropbtn">Classes &nbsp
+                <a href="" class="dropbtn">Course Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="1">
-                    <a href="add_classes.php">Add Class</a>
-                    <a href="manage_classes.php">Manage Class</a>
+                    <a href="add_classes.php">Create New Course</a>
+                    <a href="manage_classes.php">View All Courses</a>
                 </div>
             </li>
             <li class="dropdown" onclick="toggleDisplay('2')">
-                <a href="#" class="dropbtn">Students &nbsp
+                <a href="#" class="dropbtn">Student Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="2">
-                    <a href="add_students.php">Add Students</a>
-                    <a href="manage_students.php">Manage Students</a>
+                    <a href="add_students.php">Register Student</a>
+                    <a href="manage_students.php">View All Students</a>
                 </div>
             </li>
             <li class="dropdown" onclick="toggleDisplay('3')">
-                <a href="#" class="dropbtn">Results &nbsp
+                <a href="#" class="dropbtn">Results Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="3">
-                    <a href="add_results.php">Add Results</a>
+                    <a href="add_results.php">Enter Examination Results</a>
                     <a href="manage_results.php">Manage Results</a>
                 </div>
             </li>
@@ -67,19 +76,23 @@
     </div>
 
     <div class="main">
-        <?php
-            echo '<p>Number of classes:'.$no_of_classes[0].'</p>';
-            echo '<p>Number of students:'.$no_of_students[0].'</p>';
-            echo '<p>Number of results:'.$no_of_result[0].'</p>';
-        ?>
+        <h2 style="text-align: center; margin-bottom: 30px;">System Overview</h2>
+        <div class="stat-card">
+            <p><strong>Total Courses:</strong> <?php echo $total_courses[0]; ?></p>
+        </div>
+        <div class="stat-card">
+            <p><strong>Total Students:</strong> <?php echo $total_students[0]; ?></p>
+        </div>
+        <div class="stat-card">
+            <p><strong>Total Results Recorded:</strong> <?php echo $total_results[0]; ?></p>
+        </div>
     </div>
 
     <div class="footer">
-        <!-- <span>Designed & Coded By Jibin Thomas</span> -->
     </div>
 </body>
 </html>
 
 <?php
-   include('session.php');
+   require_once('auth_check.php');
 ?>

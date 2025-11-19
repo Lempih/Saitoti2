@@ -3,47 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Index Page</title>
+    <title>Administrator Login - Academic Results System</title>
     <link rel="stylesheet" href="css/login.css">
-    <link rel="stylesheet" href="./font-awesome-4.7.0/css/font-awesome.css">
+    <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 </head>
 <body>
     <div class="title">
-        <span>Student Result Management System</span>
+        <span>Academic Results Management System</span>
     </div>
 
     <div class="main">
         <div class="login">
-            <form action="" method="post" name="login">
+            <form action="" method="post" name="admin_login_form">
                 <fieldset>
-                    <legend class="heading">Admin Login</legend>
-                    <input type="text" name="userid" placeholder="Email" autocomplete="off">
-                    <input type="password" name="password" placeholder="Password" autocomplete="off">
-                    <input type="submit" value="Login">
+                    <legend class="heading">Administrator Access</legend>
+                    <input type="text" name="username" placeholder="Username" autocomplete="off" required>
+                    <input type="password" name="password" placeholder="Password" autocomplete="off" required>
+                    <input type="submit" value="Sign In" name="login_submit">
                 </fieldset>
             </form>    
         </div>
         <div class="search">
             <form action="./student.php" method="get">
                 <fieldset>
-                    <legend class="heading">For Students</legend>
+                    <legend class="heading">Student Portal</legend>
 
                     <?php
-                        include('init.php');
+                        require_once('db_config.php');
 
-                        $class_result=mysqli_query($conn,"SELECT `name` FROM `class`");
-                            echo '<select name="class">';
-                            echo '<option selected disabled>Select Class</option>';
-                        while($row = mysqli_fetch_array($class_result)){
-                            $display=$row['name'];
-                            echo '<option value="'.$display.'">'.$display.'</option>';
+                        $course_query = "SELECT course_name FROM courses ORDER BY course_name ASC";
+                        $course_result = mysqli_query($db_connection, $course_query);
+                        
+                        echo '<select name="course" required>';
+                        echo '<option value="" selected disabled>Choose Course</option>';
+                        
+                        while($course_row = mysqli_fetch_array($course_result)){
+                            $course_display = $course_row['course_name'];
+                            echo '<option value="'.$course_display.'">'.$course_display.'</option>';
                         }
-                        echo'</select>'
+                        echo '</select>';
                     ?>
 
-                    <input type="text" name="rn" placeholder="Roll No">
-                    <input type="submit" value="Get Result">
+                    <input type="text" name="rollno" placeholder="Enter Roll Number" required>
+                    <input type="submit" value="View Results">
                 </fieldset>
             </form>
         </div>
@@ -53,28 +56,38 @@
 </html>
 
 <?php
-    include("init.php");
+    require_once("db_config.php");
     session_start();
 
-    if (isset($_POST["userid"],$_POST["password"]))
+    if (isset($_POST["username"], $_POST["password"]) && isset($_POST["login_submit"]))
     {
-        $username=$_POST["userid"];
-        $password=$_POST["password"];
-        $sql = "SELECT userid FROM admin_login WHERE userid='$username' and password = '$password'";
-        $result=mysqli_query($conn,$sql);
-
-        // $row=mysqli_fetch_array($result);
-        $count=mysqli_num_rows($result);
+        $input_username = trim($_POST["username"]);
+        $input_password = trim($_POST["password"]);
         
-        if($count==1) {
-            $_SESSION['login_user']=$username;
-            header("Location: dashboard.php");
-        }else {
+        // Use prepared statement to prevent SQL injection
+        $login_query = "SELECT admin_username FROM administrators WHERE admin_username = ? AND admin_password = ?";
+        $stmt = mysqli_prepare($db_connection, $login_query);
+        
+        if ($stmt) {
+            mysqli_stmt_bind_param($stmt, "ss", $input_username, $input_password);
+            mysqli_stmt_execute($stmt);
+            $login_result = mysqli_stmt_get_result($stmt);
+            $row_count = mysqli_num_rows($login_result);
+            mysqli_stmt_close($stmt);
+            
+            if($row_count == 1) {
+                $_SESSION['logged_in_user'] = $input_username;
+                header("Location: dashboard.php");
+                exit();
+            } else {
+                echo '<script language="javascript">';
+                echo 'alert("Invalid credentials. Please check your username and password.")';
+                echo '</script>';
+            }
+        } else {
             echo '<script language="javascript">';
-            echo 'alert("Invalid Username or Password")';
+            echo 'alert("Database error. Please try again later.")';
             echo '</script>';
         }
-        
     }
 ?>
-

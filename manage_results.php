@@ -8,42 +8,43 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <link rel="stylesheet" href="./css/font-awesome-4.7.0/css/font-awesome.css">
     <link rel="stylesheet" href="./css/form.css">
-    <title>Dashboard</title>
+    <script src="./js/main.js"></script>
+    <title>Results Management</title>
 </head>
 <body>
         
     <div class="title">
-        <a href="dashboard.php"><img src="./images/logo1.png" alt="" class="logo"></a>
-        <span class="heading">Dashboard</span>
+        <a href="dashboard.php"><img src="./images/logo1.png" alt="Logo" class="logo"></a>
+        <span class="heading">Control Panel</span>
         <a href="logout.php" style="color: white"><span class="fa fa-sign-out fa-2x">Logout</span></a>
     </div>
 
     <div class="nav">
         <ul>
             <li class="dropdown" onclick="toggleDisplay('1')">
-                <a href="" class="dropbtn">Classes &nbsp
+                <a href="" class="dropbtn">Course Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="1">
-                    <a href="add_classes.php">Add Class</a>
-                    <a href="manage_classes.php">Manage Class</a>
+                    <a href="add_classes.php">Create New Course</a>
+                    <a href="manage_classes.php">View All Courses</a>
                 </div>
             </li>
             <li class="dropdown" onclick="toggleDisplay('2')">
-                <a href="#" class="dropbtn">Students &nbsp
+                <a href="#" class="dropbtn">Student Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="2">
-                    <a href="add_students.php">Add Students</a>
-                    <a href="manage_students.php">Manage Students</a>
+                    <a href="add_students.php">Register Student</a>
+                    <a href="manage_students.php">View All Students</a>
                 </div>
             </li>
             <li class="dropdown" onclick="toggleDisplay('3')">
-                <a href="#" class="dropbtn">Results &nbsp
+                <a href="#" class="dropbtn">Results Management &nbsp
                     <span class="fa fa-angle-down"></span>
                 </a>
                 <div class="dropdown-content" id="3">
-                    <a href="add_results.php">Add Results</a>
+                    <a href="add_results.php">Enter Examination Results</a>
                     <a href="manage_results.php">Manage Results</a>
                 </div>
             </li>
@@ -54,100 +55,127 @@
         <br><br>
         <form action="" method="post">
             <fieldset>
-                <legend>Delete Result</legend>
+                <legend>Delete Result Record</legend>
                 <?php
-                    include('init.php');
-                    include('session.php');
+                    require_once('db_config.php');
+                    require_once('auth_check.php');
                     
-                    $class_result=mysqli_query($conn,"SELECT `name` FROM `class`");
-                        echo '<select name="class_name">';
-                        echo '<option selected disabled>Select Class</option>';
-                    while($row = mysqli_fetch_array($class_result)){
-                        $display=$row['name'];
-                        echo '<option value="'.$display.'">'.$display.'</option>';
+                    $course_query = "SELECT course_name FROM courses ORDER BY course_name ASC";
+                    $course_result = mysqli_query($db_connection, $course_query);
+                    
+                    echo '<select name="course_name" required>';
+                    echo '<option value="" selected disabled>Select Course</option>';
+                    
+                    while($course_row = mysqli_fetch_array($course_result)){
+                        $course_display = $course_row['course_name'];
+                        echo '<option value="'.$course_display.'">'.$course_display.'</option>';
                     }
-                    echo'</select>'
+                    echo '</select>';
                 ?>
-                <input type="text" name="rno" placeholder="Roll No">
-                <input type="submit" value="Delete">
+                <input type="number" name="roll_number" placeholder="Roll Number" required>
+                <input type="submit" value="Delete Result" name="delete_result">
             </fieldset>
         </form>
         <br><br>
 
         <form action="" method="post">
             <fieldset>
-                <legend>Update Result</legend>
+                <legend>Update Result Record</legend>
                 
                 <?php
-                    $class_result=mysqli_query($conn,"SELECT `name` FROM `class`");
-                        echo '<select name="class">';
-                        echo '<option selected disabled>Select Class</option>';
-                    while($row = mysqli_fetch_array($class_result)){
-                        $display=$row['name'];
-                        echo '<option value="'.$display.'">'.$display.'</option>';
+                    $course_query = "SELECT course_name FROM courses ORDER BY course_name ASC";
+                    $course_result = mysqli_query($db_connection, $course_query);
+                    
+                    echo '<select name="course" required>';
+                    echo '<option value="" selected disabled>Select Course</option>';
+                    
+                    while($course_row = mysqli_fetch_array($course_result)){
+                        $course_display = $course_row['course_name'];
+                        echo '<option value="'.$course_display.'">'.$course_display.'</option>';
                     }
-                    echo'</select>'
+                    echo '</select>';
                 ?>
                 
-                <input type="text" name="rn" placeholder="Roll No">
-                <input type="text" name="p1" id="" placeholder="Paper 1">
-                <input type="text" name="p2" id="" placeholder="Paper 2">
-                <input type="text" name="p3" id="" placeholder="Paper 3">
-                <input type="text" name="p4" id="" placeholder="Paper 4">
-                <input type="text" name="p5" id="" placeholder="Paper 5">
-                <input type="submit" value="Update">
+                <input type="number" name="rollno" placeholder="Roll Number" required>
+                <input type="number" name="subject_1" id="" placeholder="Subject 1 Marks" min="0" max="100" required>
+                <input type="number" name="subject_2" id="" placeholder="Subject 2 Marks" min="0" max="100" required>
+                <input type="number" name="subject_3" id="" placeholder="Subject 3 Marks" min="0" max="100" required>
+                <input type="number" name="subject_4" id="" placeholder="Subject 4 Marks" min="0" max="100" required>
+                <input type="number" name="subject_5" id="" placeholder="Subject 5 Marks" min="0" max="100" required>
+                <input type="submit" value="Update Result" name="update_result">
             </fieldset>
         </form>
     </div>
-
-    <!-- <div class="footer">
-        <span>Designed & Coded By Jibin Thomas</span>
-    </div> -->
     
 </body>
 </html>
 
 <?php
-    if(isset($_POST['class_name'],$_POST['rno'])) {
-        $class_name=$_POST['class_name'];
-        $rno=$_POST['rno'];
-        echo $class_name;
-        echo $rno;
-        $delete_sql=mysqli_query($conn,"DELETE from `result` where `rno`='$rno' and `class`='$class_name'");
-        if(!$delete_sql){
+    if(isset($_POST['course_name'], $_POST['roll_number'], $_POST['delete_result'])) {
+        require_once('db_config.php');
+        require_once('auth_check.php');
+        
+        $course_name = trim($_POST['course_name']);
+        $roll_number = intval($_POST['roll_number']);
+        
+        // Use prepared statement for deletion
+        $delete_query = "DELETE FROM exam_results WHERE roll_number = ? AND course_name = ?";
+        $stmt = mysqli_prepare($db_connection, $delete_query);
+        mysqli_stmt_bind_param($stmt, "is", $roll_number, $course_name);
+        $delete_result = mysqli_stmt_execute($stmt);
+        $affected_rows = mysqli_stmt_affected_rows($stmt);
+        mysqli_stmt_close($stmt);
+        
+        if($affected_rows == 0){
             echo '<script language="javascript">';
-            echo 'alert("Not available")';
+            echo 'alert("Result not found or already deleted.")';
             echo '</script>';
         } else {
             echo '<script language="javascript">';
-            echo 'alert("Deleted")';
+            echo 'alert("Result deleted successfully!")';
             echo '</script>';
         }
     }
 
-    if(isset($_POST['rn'],$_POST['p1'],$_POST['p2'],$_POST['p3'],$_POST['p4'],$_POST['p5'],$_POST['class'])) {
-        $rno=$_POST['rn'];
-        $class_name=$_POST['class'];
-        $p1=(int)$_POST['p1'];
-        $p2=(int)$_POST['p2'];
-        $p3=(int)$_POST['p3'];
-        $p4=(int)$_POST['p4'];
-        $p5=(int)$_POST['p5'];
-
-        $marks=$p1+$p2+$p3+$p4+$p5;
-        $percentage=$marks/5;
+    if(isset($_POST['rollno'], $_POST['subject_1'], $_POST['subject_2'], $_POST['subject_3'], $_POST['subject_4'], $_POST['subject_5'], $_POST['course'], $_POST['update_result'])) {
+        require_once('db_config.php');
+        require_once('auth_check.php');
         
+        $roll_number = intval($_POST['rollno']);
+        $course_name = trim($_POST['course']);
+        $subject_1 = intval($_POST['subject_1']);
+        $subject_2 = intval($_POST['subject_2']);
+        $subject_3 = intval($_POST['subject_3']);
+        $subject_4 = intval($_POST['subject_4']);
+        $subject_5 = intval($_POST['subject_5']);
 
-        $sql="UPDATE `result` SET `p1`='$p1',`p2`='$p2',`p3`='$p3',`p4`='$p4',`p5`='$p5',`marks`='$marks',`percentage`='$percentage' WHERE `rno`='$rno' and `class`='$class_name'";
-        $update_sql=mysqli_query($conn,$sql);
-
-        if(!$update_sql){
+        $total_marks = $subject_1 + $subject_2 + $subject_3 + $subject_4 + $subject_5;
+        $grade_percentage = round($total_marks / 5, 2);
+        
+        // Validation
+        if($subject_1 > 100 || $subject_2 > 100 || $subject_3 > 100 || $subject_4 > 100 || $subject_5 > 100 || 
+           $subject_1 < 0 || $subject_2 < 0 || $subject_3 < 0 || $subject_4 < 0 || $subject_5 < 0) {
             echo '<script language="javascript">';
-            echo 'alert("Invalid Details")';
+            echo 'alert("Marks must be between 0 and 100")';
+            echo '</script>';
+            exit();
+        }
+
+        // Update using prepared statement
+        $update_query = "UPDATE exam_results SET subject_1 = ?, subject_2 = ?, subject_3 = ?, subject_4 = ?, subject_5 = ?, total_marks = ?, grade_percentage = ? WHERE roll_number = ? AND course_name = ?";
+        $stmt = mysqli_prepare($db_connection, $update_query);
+        mysqli_stmt_bind_param($stmt, "iiiiidis", $subject_1, $subject_2, $subject_3, $subject_4, $subject_5, $total_marks, $grade_percentage, $roll_number, $course_name);
+        $update_result = mysqli_stmt_execute($stmt);
+        $affected_rows = mysqli_stmt_affected_rows($stmt);
+        mysqli_stmt_close($stmt);
+
+        if($affected_rows == 0){
+            echo '<script language="javascript">';
+            echo 'alert("Result not found. Please check the roll number and course.")';
             echo '</script>';
         } else {
             echo '<script language="javascript">';
-            echo 'alert("Updated")';
+            echo 'alert("Result updated successfully!")';
             echo '</script>';
         }
     }

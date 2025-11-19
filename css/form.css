@@ -25,8 +25,10 @@ input[type=submit]{
 }
 
 input[type=submit]:hover{
-    background-color: #86c232;
-    color: white
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
 }
 
 fieldset{
