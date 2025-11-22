@@ -1,6 +1,12 @@
 <?php
     session_start();
     require_once("db_config.php");
+    
+    // Redirect if already logged in
+    if (isset($_SESSION['logged_in_user'])) {
+        header("Location: dashboard.php");
+        exit();
+    }
 
     if (isset($_POST["username"], $_POST["password"]) && isset($_POST["login_submit"]))
     {
@@ -14,24 +20,51 @@
         }
         
         // Use prepared statement to prevent SQL injection
-        $login_query = "SELECT admin_username FROM administrators WHERE admin_username = ? AND admin_password = ?";
+        // Support both plain text and hashed passwords for backward compatibility
+        $login_query = "SELECT admin_username, admin_password FROM administrators WHERE admin_username = ?";
         $stmt = mysqli_prepare($db_connection, $login_query);
         
         if ($stmt) {
-            mysqli_stmt_bind_param($stmt, "ss", $input_username, $input_password);
+            mysqli_stmt_bind_param($stmt, "s", $input_username);
             mysqli_stmt_execute($stmt);
             $login_result = mysqli_stmt_get_result($stmt);
-            $row_count = mysqli_num_rows($login_result);
-            mysqli_stmt_close($stmt);
             
-            if($row_count == 1) {
-                $_SESSION['logged_in_user'] = $input_username;
-                $_SESSION['success'] = "Login successful! Welcome back.";
-                header("Location: dashboard.php");
-                exit();
+            if(mysqli_num_rows($login_result) == 1) {
+                $admin_data = mysqli_fetch_assoc($login_result);
+                $stored_password = $admin_data['admin_password'];
+                
+                // Check password (handle both plain text and hashed)
+                $password_valid = false;
+                if (strlen($stored_password) >= 60 && password_verify($input_password, $stored_password)) {
+                    // Password is hashed and matches
+                    $password_valid = true;
+                } elseif ($stored_password === $input_password) {
+                    // Plain text password match (backward compatibility)
+                    // Re-hash it for security
+                    $hashed = password_hash($input_password, PASSWORD_DEFAULT);
+                    $update_hash = "UPDATE administrators SET admin_password = ? WHERE admin_username = ?";
+                    $update_stmt = mysqli_prepare($db_connection, $update_hash);
+                    if ($update_stmt) {
+                        mysqli_stmt_bind_param($update_stmt, "ss", $hashed, $input_username);
+                        mysqli_stmt_execute($update_stmt);
+                        mysqli_stmt_close($update_stmt);
+                    }
+                    $password_valid = true;
+                }
+                
+                if ($password_valid) {
+                    $_SESSION['logged_in_user'] = $input_username;
+                    $_SESSION['success'] = "Login successful! Welcome back.";
+                    mysqli_stmt_close($stmt);
+                    header("Location: dashboard.php");
+                    exit();
+                } else {
+                    $_SESSION['error'] = "Invalid credentials. Please check your username and password.";
+                }
             } else {
                 $_SESSION['error'] = "Invalid credentials. Please check your username and password.";
             }
+            mysqli_stmt_close($stmt);
         } else {
             $_SESSION['error'] = "Database error. Please try again later.";
         }

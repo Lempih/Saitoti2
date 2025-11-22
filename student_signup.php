@@ -1,6 +1,13 @@
 <?php
     session_start();
     require_once("db_config.php");
+    require_once("init_auth.php");
+    
+    // Redirect if already logged in
+    if (isset($_SESSION['student_logged_in']) && $_SESSION['student_logged_in'] === true) {
+        header("Location: student_dashboard.php");
+        exit();
+    }
     
     // Handle registration
     if (isset($_POST["full_name"], $_POST["email"], $_POST["roll_number"], $_POST["password"], $_POST["confirm_password"], $_POST["course_name"], $_POST["signup_submit"]))
@@ -102,6 +109,20 @@
             mysqli_stmt_close($stmt_verify);
         }
 
+        // Verify email and password columns exist before inserting
+        $check_email_col = "SHOW COLUMNS FROM student_records LIKE 'email'";
+        $check_password_col = "SHOW COLUMNS FROM student_records LIKE 'password'";
+        $email_result = mysqli_query($db_connection, $check_email_col);
+        $password_result = mysqli_query($db_connection, $check_password_col);
+        $email_col_exists = $email_result && mysqli_num_rows($email_result) > 0;
+        $password_col_exists = $password_result && mysqli_num_rows($password_result) > 0;
+        
+        if (!$email_col_exists || !$password_col_exists) {
+            $_SESSION['error'] = "System not fully configured. Please run update_database.php first or contact administrator.";
+            header("Location: student_signup.php");
+            exit();
+        }
+
         // Hash password
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
@@ -110,7 +131,7 @@
         $stmt = mysqli_prepare($db_connection, $insert_query);
         
         if (!$stmt) {
-            $_SESSION['error'] = "Database error. Please contact administrator.";
+            $_SESSION['error'] = "Database error: " . mysqli_error($db_connection) . ". Please contact administrator.";
             header("Location: student_signup.php");
             exit();
         }
@@ -177,7 +198,15 @@
                     <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm Password" autocomplete="off" required>
                     
                     <?php
-                        if ($db_connection) {
+                        // Check if database columns exist
+                        $check_email_col = "SHOW COLUMNS FROM student_records LIKE 'email'";
+                        $check_password_col = "SHOW COLUMNS FROM student_records LIKE 'password'";
+                        $email_col_exists = $db_connection && mysqli_query($db_connection, $check_email_col) && mysqli_num_rows(mysqli_query($db_connection, $check_email_col)) > 0;
+                        $password_col_exists = $db_connection && mysqli_query($db_connection, $check_password_col) && mysqli_num_rows(mysqli_query($db_connection, $check_password_col)) > 0;
+                        
+                        if (!$email_col_exists || !$password_col_exists) {
+                            echo '<p style="color: #e74c3c; padding: 10px; text-align: center;">System configuration incomplete. Please run <a href="update_database.php" style="color: #3498db;">update_database.php</a> first.</p>';
+                        } elseif ($db_connection) {
                             $course_query = "SELECT course_name FROM courses ORDER BY course_name ASC";
                             $course_result = mysqli_query($db_connection, $course_query);
                             
@@ -207,16 +236,27 @@
         </div>
     </div>
 
+    <script src="./js/toast.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             
         <?php if (isset($_SESSION['error'])): ?>
-            showError('<?php echo addslashes($_SESSION['error']); ?>');
+            setTimeout(function() {
+                if (typeof showError === 'function') {
+                    showError('<?php echo addslashes($_SESSION['error']); ?>');
+                } else {
+                    alert('<?php echo addslashes($_SESSION['error']); ?>');
+                }
+            }, 200);
             <?php unset($_SESSION['error']); ?>
         <?php endif; ?>
 
         <?php if (isset($_SESSION['success'])): ?>
-            showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
+            setTimeout(function() {
+                if (typeof showSuccess === 'function') {
+                    showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
+                }
+            }, 200);
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
 
@@ -280,7 +320,5 @@
     
         });
     </script>
-
-    <script src="./js/toast.js"></script>
 </body>
 </html>

@@ -9,10 +9,38 @@
         exit();
     }
 
+    // Verify session data exists
+    if (!isset($_SESSION['student_email']) || !isset($_SESSION['student_name']) || !isset($_SESSION['student_roll']) || !isset($_SESSION['student_course'])) {
+        session_destroy();
+        $_SESSION['error'] = "Session expired. Please login again.";
+        header("Location: student_login.php");
+        exit();
+    }
+
     $student_email = $_SESSION['student_email'];
     $student_name = $_SESSION['student_name'];
     $student_roll = $_SESSION['student_roll'];
     $student_course = $_SESSION['student_course'];
+    
+    // Verify student still exists in database
+    if ($db_connection) {
+        $verify_query = "SELECT email FROM student_records WHERE email = ? AND roll_number = ? AND enrolled_course = ?";
+        $verify_stmt = mysqli_prepare($db_connection, $verify_query);
+        if ($verify_stmt) {
+            mysqli_stmt_bind_param($verify_stmt, "sis", $student_email, $student_roll, $student_course);
+            mysqli_stmt_execute($verify_stmt);
+            $verify_result = mysqli_stmt_get_result($verify_stmt);
+            
+            if (mysqli_num_rows($verify_result) == 0) {
+                mysqli_stmt_close($verify_stmt);
+                session_destroy();
+                $_SESSION['error'] = "Your account was not found. Please contact administrator.";
+                header("Location: student_login.php");
+                exit();
+            }
+            mysqli_stmt_close($verify_stmt);
+        }
+    }
 
     // Get student's results
     if ($db_connection) {

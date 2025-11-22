@@ -1,6 +1,13 @@
 <?php
     session_start();
     require_once("db_config.php");
+    require_once("init_auth.php");
+    
+    // Redirect if already logged in
+    if (isset($_SESSION['student_logged_in']) && $_SESSION['student_logged_in'] === true) {
+        header("Location: student_dashboard.php");
+        exit();
+    }
     
     // Handle login
     if (isset($_POST["email"], $_POST["password"]) && isset($_POST["login_submit"]))
@@ -10,6 +17,16 @@
         
         if (!$db_connection) {
             $_SESSION['error'] = "Database connection failed. Please try again later.";
+            header("Location: student_login.php");
+            exit();
+        }
+        
+        // Check if password column exists
+        $check_password_col = "SHOW COLUMNS FROM student_records LIKE 'password'";
+        $col_check = mysqli_query($db_connection, $check_password_col);
+        
+        if (!$col_check || mysqli_num_rows($col_check) == 0) {
+            $_SESSION['error'] = "System not fully configured. Please contact administrator.";
             header("Location: student_login.php");
             exit();
         }
@@ -26,14 +43,40 @@
             if(mysqli_num_rows($login_result) == 1) {
                 $student_data = mysqli_fetch_assoc($login_result);
                 
-                // Verify password
+                // Check if password column has a value
+                if (empty($student_data['password'])) {
+                    $_SESSION['error'] = "Your account is not fully set up. Please sign up again or contact administrator.";
+                    mysqli_stmt_close($stmt);
+                    header("Location: student_login.php");
+                    exit();
+                }
+                
+                // Verify password (handle both hashed and plain text for migration)
+                $password_valid = false;
                 if (password_verify($password, $student_data['password'])) {
+                    $password_valid = true;
+                } elseif (strlen($student_data['password']) < 60 && $student_data['password'] === $password) {
+                    // Plain text password (for backward compatibility during migration)
+                    // Re-hash it
+                    $hashed = password_hash($password, PASSWORD_DEFAULT);
+                    $update_hash = "UPDATE student_records SET password = ? WHERE email = ?";
+                    $update_stmt = mysqli_prepare($db_connection, $update_hash);
+                    if ($update_stmt) {
+                        mysqli_stmt_bind_param($update_stmt, "ss", $hashed, $email);
+                        mysqli_stmt_execute($update_stmt);
+                        mysqli_stmt_close($update_stmt);
+                    }
+                    $password_valid = true;
+                }
+                
+                if ($password_valid) {
                     $_SESSION['student_logged_in'] = true;
                     $_SESSION['student_email'] = $student_data['email'];
                     $_SESSION['student_name'] = $student_data['full_name'];
                     $_SESSION['student_roll'] = $student_data['roll_number'];
                     $_SESSION['student_course'] = $student_data['enrolled_course'];
                     $_SESSION['success'] = "Login successful! Welcome back.";
+                    mysqli_stmt_close($stmt);
                     header("Location: student_dashboard.php");
                     exit();
                 } else {
@@ -127,6 +170,7 @@
         </div>
     </div>
 
+    <script src="./js/toast.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             <?php if (isset($_SESSION['error'])): ?>
@@ -136,7 +180,7 @@
                     } else {
                         alert('<?php echo addslashes($_SESSION['error']); ?>');
                     }
-                }, 100);
+                }, 200);
                 <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
 
@@ -145,7 +189,7 @@
                     if (typeof showSuccess === 'function') {
                         showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
                     }
-                }, 100);
+                }, 200);
                 <?php unset($_SESSION['success']); ?>
             <?php endif; ?>
 
@@ -154,7 +198,7 @@
             if (loginForm) {
                 loginForm.addEventListener('submit', function(e) {
                     var btn = document.getElementById('loginBtn');
-                    if (btn) {
+                    if (btn && !btn.disabled) {
                         btn.disabled = true;
                         btn.value = 'Logging in...';
                     }
@@ -163,7 +207,5 @@
             }
         });
     </script>
-
-    <script src="./js/toast.js"></script>
 </body>
 </html>

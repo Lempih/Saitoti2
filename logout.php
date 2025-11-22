@@ -14,8 +14,11 @@
    }
    
    // Destroy the session
-   if(session_destroy()) {
-        header("Location: login.php");
-        exit();
-   }
+   session_destroy();
+   
+   // Set success message
+   session_start();
+   $_SESSION['success'] = "You have been successfully logged out.";
+   header("Location: login.php");
+   exit();
 ?>

@@ -24,13 +24,17 @@
                    $authenticated_user = $user_data['admin_username'];
                } else {
                    // User no longer exists, destroy session
+                   $_SESSION = array();
+                   if (isset($_COOKIE[session_name()])) {
+                       setcookie(session_name(), '', time()-42000, '/');
+                   }
                    session_destroy();
                    $_SESSION['error'] = "Your session has expired. Please login again.";
                    header("Location: login.php");
                    exit();
                }
            } else {
-               // Database error, but allow access
+               // Database error, but allow access for now
                $authenticated_user = $current_user;
            }
        } else {
