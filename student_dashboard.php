@@ -10,7 +10,7 @@
     }
 
     // Verify session data exists
-    if (!isset($_SESSION['student_email']) || !isset($_SESSION['student_name']) || !isset($_SESSION['student_roll']) || !isset($_SESSION['student_course'])) {
+    if (!isset($_SESSION['student_email']) || !isset($_SESSION['student_name']) || !isset($_SESSION['student_registration']) || !isset($_SESSION['student_course'])) {
         session_destroy();
         $_SESSION['error'] = "Session expired. Please login again.";
         header("Location: student_login.php");
@@ -19,16 +19,33 @@
 
     $student_email = $_SESSION['student_email'];
     $student_name = $_SESSION['student_name'];
-    $student_roll = $_SESSION['student_roll'];
+    $student_registration = $_SESSION['student_registration'];
     $student_course = $_SESSION['student_course'];
     $student_profile_picture = null;
     
     // Verify student still exists in database and get profile picture
     if ($db_connection) {
-        $verify_query = "SELECT email, profile_picture FROM student_records WHERE email = ? AND roll_number = ? AND enrolled_course = ?";
-        $verify_stmt = mysqli_prepare($db_connection, $verify_query);
-        if ($verify_stmt) {
-            mysqli_stmt_bind_param($verify_stmt, "sis", $student_email, $student_roll, $student_course);
+        // Check which column exists (migration support)
+        $check_reg_col = "SHOW COLUMNS FROM student_records LIKE 'registration_number'";
+        $reg_check = mysqli_query($db_connection, $check_reg_col);
+        $has_registration_col = $reg_check && mysqli_num_rows($reg_check) > 0;
+        
+        if ($has_registration_col) {
+            $verify_query = "SELECT email, profile_picture FROM student_records WHERE email = ? AND registration_number = ? AND enrolled_course = ?";
+            $verify_stmt = mysqli_prepare($db_connection, $verify_query);
+            if ($verify_stmt) {
+                mysqli_stmt_bind_param($verify_stmt, "sss", $student_email, $student_registration, $student_course);
+            }
+        } else {
+            // Fallback to roll_number if migration not done
+            $verify_query = "SELECT email, profile_picture FROM student_records WHERE email = ? AND roll_number = ? AND enrolled_course = ?";
+            $verify_stmt = mysqli_prepare($db_connection, $verify_query);
+            if ($verify_stmt) {
+                mysqli_stmt_bind_param($verify_stmt, "sis", $student_email, $student_registration, $student_course);
+            }
+        }
+        
+        if (isset($verify_stmt) && $verify_stmt) {
             mysqli_stmt_execute($verify_stmt);
             $verify_result = mysqli_stmt_get_result($verify_stmt);
             
@@ -48,9 +65,21 @@
 
     // Get student's results
     if ($db_connection) {
-        $result_query = "SELECT subject_1, subject_2, subject_3, subject_4, subject_5, total_marks, grade_percentage, created_at FROM exam_results WHERE roll_number = ? AND course_name = ? ORDER BY created_at DESC LIMIT 1";
-        $stmt = mysqli_prepare($db_connection, $result_query);
-        mysqli_stmt_bind_param($stmt, "is", $student_roll, $student_course);
+        // Check which column exists in exam_results
+        $check_results_reg = "SHOW COLUMNS FROM exam_results LIKE 'registration_number'";
+        $results_reg_check = mysqli_query($db_connection, $check_results_reg);
+        $has_results_reg_col = $results_reg_check && mysqli_num_rows($results_reg_check) > 0;
+        
+        if ($has_results_reg_col) {
+            $result_query = "SELECT subject_1, subject_2, subject_3, subject_4, subject_5, total_marks, grade_percentage, created_at FROM exam_results WHERE registration_number = ? AND course_name = ? ORDER BY created_at DESC LIMIT 1";
+            $stmt = mysqli_prepare($db_connection, $result_query);
+            mysqli_stmt_bind_param($stmt, "ss", $student_registration, $student_course);
+        } else {
+            // Fallback to roll_number
+            $result_query = "SELECT subject_1, subject_2, subject_3, subject_4, subject_5, total_marks, grade_percentage, created_at FROM exam_results WHERE roll_number = ? AND course_name = ? ORDER BY created_at DESC LIMIT 1";
+            $stmt = mysqli_prepare($db_connection, $result_query);
+            mysqli_stmt_bind_param($stmt, "is", $student_registration, $student_course);
+        }
         mysqli_stmt_execute($stmt);
         $result_data = mysqli_stmt_get_result($stmt);
         $has_results = mysqli_num_rows($result_data) > 0;
@@ -192,7 +221,7 @@
             <div style="flex: 1;">
                 <h2><i class="fa fa-user"></i> Welcome, <?php echo htmlspecialchars($student_name); ?>!</h2>
                 <p><strong>Email:</strong> <?php echo htmlspecialchars($student_email); ?></p>
-                <p><strong>Roll Number:</strong> <?php echo htmlspecialchars($student_roll); ?></p>
+                <p><strong>Registration Number:</strong> <?php echo htmlspecialchars($student_registration); ?></p>
                 <p><strong>Course:</strong> <?php echo htmlspecialchars($student_course); ?></p>
             </div>
         </div>
@@ -233,7 +262,7 @@
                 </div>
 
                 <div style="text-align: center; margin-top: 30px;">
-                    <a href="student.php?course=<?php echo urlencode($student_course); ?>&rollno=<?php echo $student_roll; ?>" 
+                    <a href="student.php?course=<?php echo urlencode($student_course); ?>&regno=<?php echo urlencode($student_registration); ?>" 
                        class="btn btn-primary" 
                        style="display: inline-block; padding: 15px 40px; background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%); color: white; text-decoration: none; border-radius: 30px; font-weight: 600; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4); transition: all 0.3s ease;">
                         <i class="fa fa-print"></i> View & Print Results

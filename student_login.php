@@ -9,11 +9,10 @@
         exit();
     }
     
-    // Handle login
-    if (isset($_POST["email"], $_POST["password"]) && isset($_POST["login_submit"]))
+    // Handle login using registration_number as both identifier and password
+    if (isset($_POST["registration_number"]) && isset($_POST["login_submit"]))
     {
-        $email = trim($_POST["email"]);
-        $password = $_POST["password"];
+        $registration_number = trim($_POST["registration_number"]);
         
         if (!$db_connection) {
             $_SESSION['error'] = "Database connection failed. Please try again later.";
@@ -21,69 +20,58 @@
             exit();
         }
         
-        // Check if password column exists
-        $check_password_col = "SHOW COLUMNS FROM student_records LIKE 'password'";
-        $col_check = mysqli_query($db_connection, $check_password_col);
+        // Check if registration_number column exists, if not check for roll_number (migration)
+        $check_reg_col = "SHOW COLUMNS FROM student_records LIKE 'registration_number'";
+        $col_check = mysqli_query($db_connection, $check_reg_col);
+        $has_registration_col = $col_check && mysqli_num_rows($col_check) > 0;
         
-        if (!$col_check || mysqli_num_rows($col_check) == 0) {
-            $_SESSION['error'] = "System not fully configured. Please contact administrator.";
+        if (!$has_registration_col) {
+            // Try to migrate
+            $check_roll = "SHOW COLUMNS FROM student_records LIKE 'roll_number'";
+            $roll_check = mysqli_query($db_connection, $check_roll);
+            
+            if ($roll_check && mysqli_num_rows($roll_check) > 0) {
+                // Rename column
+                @mysqli_query($db_connection, "ALTER TABLE student_records CHANGE COLUMN roll_number registration_number VARCHAR(50) NOT NULL");
+                $has_registration_col = true;
+            }
+        }
+        
+        if (!$has_registration_col) {
+            $_SESSION['error'] = "System not fully configured. Please run migrate_to_registration_number.php";
             header("Location: student_login.php");
             exit();
         }
         
-        // Use prepared statement to prevent SQL injection
-        $login_query = "SELECT full_name, email, roll_number, enrolled_course, password FROM student_records WHERE email = ?";
+        // Use registration_number as both identifier and password
+        // Check if registration_number matches (it acts as password)
+        $login_query = "SELECT full_name, email, registration_number, enrolled_course, profile_picture FROM student_records WHERE registration_number = ?";
         $stmt = mysqli_prepare($db_connection, $login_query);
         
         if ($stmt) {
-            mysqli_stmt_bind_param($stmt, "s", $email);
+            mysqli_stmt_bind_param($stmt, "s", $registration_number);
             mysqli_stmt_execute($stmt);
             $login_result = mysqli_stmt_get_result($stmt);
             
             if(mysqli_num_rows($login_result) == 1) {
                 $student_data = mysqli_fetch_assoc($login_result);
                 
-                // Check if password column has a value
-                if (empty($student_data['password'])) {
-                    $_SESSION['error'] = "Your account is not fully set up. Please sign up again or contact administrator.";
-                    mysqli_stmt_close($stmt);
-                    header("Location: student_login.php");
-                    exit();
-                }
-                
-                // Verify password (handle both hashed and plain text for migration)
-                $password_valid = false;
-                if (password_verify($password, $student_data['password'])) {
-                    $password_valid = true;
-                } elseif (strlen($student_data['password']) < 60 && $student_data['password'] === $password) {
-                    // Plain text password (for backward compatibility during migration)
-                    // Re-hash it
-                    $hashed = password_hash($password, PASSWORD_DEFAULT);
-                    $update_hash = "UPDATE student_records SET password = ? WHERE email = ?";
-                    $update_stmt = mysqli_prepare($db_connection, $update_hash);
-                    if ($update_stmt) {
-                        mysqli_stmt_bind_param($update_stmt, "ss", $hashed, $email);
-                        mysqli_stmt_execute($update_stmt);
-                        mysqli_stmt_close($update_stmt);
-                    }
-                    $password_valid = true;
-                }
-                
-                if ($password_valid) {
+                // Registration number acts as password - if it matches, login succeeds
+                if ($student_data['registration_number'] === $registration_number) {
                     $_SESSION['student_logged_in'] = true;
                     $_SESSION['student_email'] = $student_data['email'];
                     $_SESSION['student_name'] = $student_data['full_name'];
-                    $_SESSION['student_roll'] = $student_data['roll_number'];
+                    $_SESSION['student_registration'] = $student_data['registration_number'];
                     $_SESSION['student_course'] = $student_data['enrolled_course'];
                     $_SESSION['success'] = "Login successful! Welcome back.";
                     mysqli_stmt_close($stmt);
                     header("Location: student_dashboard.php");
                     exit();
                 } else {
-                    $_SESSION['error'] = "Invalid email or password.";
+                    $_SESSION['error'] = "Invalid registration number.";
                 }
             } else {
-                $_SESSION['error'] = "Invalid email or password.";
+                $_SESSION['error'] = "Invalid registration number. Please check and try again.";
             }
             mysqli_stmt_close($stmt);
         } else {
@@ -121,8 +109,10 @@
                     <legend class="heading">
                         <i class="fa fa-sign-in"></i> Student Login
                     </legend>
-                    <input type="email" name="email" placeholder="Email Address" autocomplete="off" required>
-                    <input type="password" name="password" id="password" placeholder="Password" autocomplete="off" required>
+                    <input type="text" name="registration_number" id="registration_number" placeholder="Registration Number" autocomplete="off" required>
+                    <p style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9rem;">
+                        <i class="fa fa-info-circle"></i> Enter your registration number to login
+                    </p>
                     <input type="submit" value="Login" name="login_submit" id="loginBtn">
                     <p style="text-align: center; margin-top: 20px; color: #666;">
                         Don't have an account? <a href="student_signup.php" style="color: #27ae60; text-decoration: none; font-weight: 600;">Sign up here</a>

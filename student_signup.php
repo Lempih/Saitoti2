@@ -9,8 +9,8 @@
         exit();
     }
     
-    // Handle registration
-    if (isset($_POST["full_name"], $_POST["email"], $_POST["roll_number"], $_POST["password"], $_POST["confirm_password"], $_POST["course_name"], $_POST["signup_submit"]))
+    // Handle registration - Registration number acts as both identifier and password
+    if (isset($_POST["full_name"], $_POST["email"], $_POST["registration_number"], $_POST["course_name"], $_POST["signup_submit"]))
     {
         if (!$db_connection) {
             $_SESSION['error'] = "Database connection failed. Please try again later.";
@@ -20,9 +20,7 @@
 
         $full_name = trim($_POST["full_name"]);
         $email = trim($_POST["email"]);
-        $roll_number = intval($_POST["roll_number"]);
-        $password = $_POST["password"];
-        $confirm_password = $_POST["confirm_password"];
+        $registration_number = trim($_POST["registration_number"]);
         $course_name = trim($_POST["course_name"]);
 
         // Validation
@@ -36,16 +34,8 @@
             $errors[] = "Please enter a valid email address.";
         }
 
-        if (empty($roll_number) || $roll_number <= 0) {
-            $errors[] = "Please enter a valid roll number.";
-        }
-
-        if (empty($password) || strlen($password) < 6) {
-            $errors[] = "Password must be at least 6 characters long.";
-        }
-
-        if ($password !== $confirm_password) {
-            $errors[] = "Passwords do not match!";
+        if (empty($registration_number) || strlen($registration_number) < 3) {
+            $errors[] = "Please enter a valid registration number (minimum 3 characters).";
         }
 
         if (empty($course_name)) {
@@ -75,21 +65,45 @@
             mysqli_stmt_close($stmt_check);
         }
 
-        // Check if roll number already exists for this course
-        $check_roll = "SELECT roll_number FROM student_records WHERE roll_number = ? AND enrolled_course = ?";
-        $stmt_roll = mysqli_prepare($db_connection, $check_roll);
-        if ($stmt_roll) {
-            mysqli_stmt_bind_param($stmt_roll, "is", $roll_number, $course_name);
-            mysqli_stmt_execute($stmt_roll);
-            $result_roll = mysqli_stmt_get_result($stmt_roll);
-            
-            if(mysqli_num_rows($result_roll) > 0) {
-                $_SESSION['error'] = "Roll number already exists for this course. Please contact administrator.";
-                mysqli_stmt_close($stmt_roll);
-                header("Location: student_signup.php");
-                exit();
+        // Check if registration number already exists (it must be unique across all courses)
+        // First check which column exists
+        $check_reg_col = "SHOW COLUMNS FROM student_records LIKE 'registration_number'";
+        $reg_col_check = mysqli_query($db_connection, $check_reg_col);
+        $has_registration_col = $reg_col_check && mysqli_num_rows($reg_col_check) > 0;
+        
+        if ($has_registration_col) {
+            $check_reg = "SELECT registration_number FROM student_records WHERE registration_number = ?";
+            $stmt_reg = mysqli_prepare($db_connection, $check_reg);
+            if ($stmt_reg) {
+                mysqli_stmt_bind_param($stmt_reg, "s", $registration_number);
+                mysqli_stmt_execute($stmt_reg);
+                $result_reg = mysqli_stmt_get_result($stmt_reg);
+                
+                if(mysqli_num_rows($result_reg) > 0) {
+                    $_SESSION['error'] = "Registration number already exists. Please contact administrator if this is yours.";
+                    mysqli_stmt_close($stmt_reg);
+                    header("Location: student_signup.php");
+                    exit();
+                }
+                mysqli_stmt_close($stmt_reg);
             }
-            mysqli_stmt_close($stmt_roll);
+        } else {
+            // Check roll_number if migration not done
+            $check_roll = "SELECT roll_number FROM student_records WHERE roll_number = ?";
+            $stmt_roll = mysqli_prepare($db_connection, $check_roll);
+            if ($stmt_roll) {
+                mysqli_stmt_bind_param($stmt_roll, "s", $registration_number);
+                mysqli_stmt_execute($stmt_roll);
+                $result_roll = mysqli_stmt_get_result($stmt_roll);
+                
+                if(mysqli_num_rows($result_roll) > 0) {
+                    $_SESSION['error'] = "Registration number already exists. Please contact administrator.";
+                    mysqli_stmt_close($stmt_roll);
+                    header("Location: student_signup.php");
+                    exit();
+                }
+                mysqli_stmt_close($stmt_roll);
+            }
         }
 
         // Verify course exists
@@ -150,8 +164,21 @@
             }
         }
 
-        // Hash password
-        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        // Check/migrate registration_number column
+        $check_reg_col = "SHOW COLUMNS FROM student_records LIKE 'registration_number'";
+        $reg_col_check = mysqli_query($db_connection, $check_reg_col);
+        $has_registration_col = $reg_col_check && mysqli_num_rows($reg_col_check) > 0;
+        
+        if (!$has_registration_col) {
+            // Try to migrate roll_number to registration_number
+            $check_roll = "SHOW COLUMNS FROM student_records LIKE 'roll_number'";
+            $roll_exists = mysqli_query($db_connection, $check_roll);
+            if ($roll_exists && mysqli_num_rows($roll_exists) > 0) {
+                @mysqli_query($db_connection, "ALTER TABLE student_records CHANGE COLUMN roll_number registration_number VARCHAR(50) NOT NULL");
+            } else {
+                @mysqli_query($db_connection, "ALTER TABLE student_records ADD COLUMN registration_number VARCHAR(50) NOT NULL");
+            }
+        }
 
         // Check if profile_picture column exists, if not add it
         $check_profile_col = "SHOW COLUMNS FROM student_records LIKE 'profile_picture'";
@@ -159,33 +186,52 @@
         $profile_col_exists = $profile_col_result && mysqli_num_rows($profile_col_result) > 0;
         
         if (!$profile_col_exists) {
-            $alter_profile = "ALTER TABLE student_records ADD COLUMN profile_picture VARCHAR(255) NULL AFTER password";
+            $alter_profile = "ALTER TABLE student_records ADD COLUMN profile_picture VARCHAR(255) NULL";
             @mysqli_query($db_connection, $alter_profile);
         }
 
+        // Check if email column exists
+        $check_email_col = "SHOW COLUMNS FROM student_records LIKE 'email'";
+        $email_col_check = mysqli_query($db_connection, $check_email_col);
+        $has_email_col = $email_col_check && mysqli_num_rows($email_col_check) > 0;
+
         // Insert student using prepared statement
-        if ($profile_col_exists || $profile_col_result) {
-            $insert_query = "INSERT INTO student_records (full_name, email, roll_number, enrolled_course, password, profile_picture) VALUES (?, ?, ?, ?, ?, ?)";
-            $stmt = mysqli_prepare($db_connection, $insert_query);
-            
-            if (!$stmt) {
-                $_SESSION['error'] = "Database error: " . mysqli_error($db_connection) . ". Please contact administrator.";
-                header("Location: student_signup.php");
-                exit();
+        // Registration number acts as password - no separate password field needed
+        if ($has_email_col) {
+            if ($profile_col_exists) {
+                $insert_query = "INSERT INTO student_records (full_name, email, registration_number, enrolled_course, profile_picture) VALUES (?, ?, ?, ?, ?)";
+                $stmt = mysqli_prepare($db_connection, $insert_query);
+                if ($stmt) {
+                    mysqli_stmt_bind_param($stmt, "sssss", $full_name, $email, $registration_number, $course_name, $profile_picture_path);
+                }
+            } else {
+                $insert_query = "INSERT INTO student_records (full_name, email, registration_number, enrolled_course) VALUES (?, ?, ?, ?)";
+                $stmt = mysqli_prepare($db_connection, $insert_query);
+                if ($stmt) {
+                    mysqli_stmt_bind_param($stmt, "ssss", $full_name, $email, $registration_number, $course_name);
+                }
             }
-
-            mysqli_stmt_bind_param($stmt, "ssisss", $full_name, $email, $roll_number, $course_name, $hashed_password, $profile_picture_path);
         } else {
-            $insert_query = "INSERT INTO student_records (full_name, email, roll_number, enrolled_course, password) VALUES (?, ?, ?, ?, ?)";
-            $stmt = mysqli_prepare($db_connection, $insert_query);
-            
-            if (!$stmt) {
-                $_SESSION['error'] = "Database error: " . mysqli_error($db_connection) . ". Please contact administrator.";
-                header("Location: student_signup.php");
-                exit();
+            // Fallback without email
+            if ($profile_col_exists) {
+                $insert_query = "INSERT INTO student_records (full_name, registration_number, enrolled_course, profile_picture) VALUES (?, ?, ?, ?)";
+                $stmt = mysqli_prepare($db_connection, $insert_query);
+                if ($stmt) {
+                    mysqli_stmt_bind_param($stmt, "ssss", $full_name, $registration_number, $course_name, $profile_picture_path);
+                }
+            } else {
+                $insert_query = "INSERT INTO student_records (full_name, registration_number, enrolled_course) VALUES (?, ?, ?)";
+                $stmt = mysqli_prepare($db_connection, $insert_query);
+                if ($stmt) {
+                    mysqli_stmt_bind_param($stmt, "sss", $full_name, $registration_number, $course_name);
+                }
             }
-
-            mysqli_stmt_bind_param($stmt, "ssiss", $full_name, $email, $roll_number, $course_name, $hashed_password);
+        }
+        
+        if (!$stmt) {
+            $_SESSION['error'] = "Database error: " . mysqli_error($db_connection) . ". Please contact administrator.";
+            header("Location: student_signup.php");
+            exit();
         }
         $result = mysqli_stmt_execute($stmt);
         
@@ -252,20 +298,14 @@
                     
                     <input type="text" name="full_name" id="full_name" placeholder="Full Name" autocomplete="off" required minlength="3">
                     <input type="email" name="email" id="email" placeholder="Email Address" autocomplete="off" required>
-                    <input type="number" name="roll_number" id="roll_number" placeholder="Roll Number" autocomplete="off" required min="1">
-                    <input type="password" name="password" id="password" placeholder="Password (min 6 characters)" autocomplete="off" required minlength="6">
-                    <input type="password" name="confirm_password" id="confirm_password" placeholder="Confirm Password" autocomplete="off" required>
+                    <input type="text" name="registration_number" id="registration_number" placeholder="Registration Number" autocomplete="off" required minlength="3">
+                    <p style="text-align: center; margin-top: 10px; color: #666; font-size: 0.9rem;">
+                        <i class="fa fa-info-circle"></i> Your registration number will be used to login
+                    </p>
                     
                     <?php
-                        // Check if database columns exist
-                        $check_email_col = "SHOW COLUMNS FROM student_records LIKE 'email'";
-                        $check_password_col = "SHOW COLUMNS FROM student_records LIKE 'password'";
-                        $email_col_exists = $db_connection && mysqli_query($db_connection, $check_email_col) && mysqli_num_rows(mysqli_query($db_connection, $check_email_col)) > 0;
-                        $password_col_exists = $db_connection && mysqli_query($db_connection, $check_password_col) && mysqli_num_rows(mysqli_query($db_connection, $check_password_col)) > 0;
-                        
-                        if (!$email_col_exists || !$password_col_exists) {
-                            echo '<p style="color: #e74c3c; padding: 10px; text-align: center;">System configuration incomplete. Please run <a href="update_database.php" style="color: #3498db;">update_database.php</a> first.</p>';
-                        } elseif ($db_connection) {
+                        // Check if database connection exists
+                        if ($db_connection) {
                             $course_query = "SELECT course_name FROM courses ORDER BY course_name ASC";
                             $course_result = mysqli_query($db_connection, $course_query);
                             
@@ -297,7 +337,6 @@
 
     <script src="./js/toast.js"></script>
     <script src="./js/image-preview.js"></script>
-    <script src="./js/password-toggle.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             // Initialize image preview
@@ -328,26 +367,17 @@
         <?php endif; ?>
 
         function validateForm() {
-            var password = document.getElementById('password').value;
-            var confirmPassword = document.getElementById('confirm_password').value;
             var fullName = document.getElementById('full_name').value;
             var email = document.getElementById('email').value;
-            var rollNumber = document.getElementById('roll_number').value;
+            var registrationNumber = document.getElementById('registration_number').value;
             var course = document.getElementById('course_name').value;
 
             var submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = true;
             submitBtn.value = 'Registering...';
 
-            if (password !== confirmPassword) {
-                showError('Passwords do not match!');
-                submitBtn.disabled = false;
-                submitBtn.value = 'Register';
-                return false;
-            }
-
-            if (password.length < 6) {
-                showError('Password must be at least 6 characters long.');
+            if (registrationNumber.length < 3) {
+                showError('Registration number must be at least 3 characters long.');
                 submitBtn.disabled = false;
                 submitBtn.value = 'Register';
                 return false;

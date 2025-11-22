@@ -21,7 +21,7 @@
             </a>
         </li>
         <li>
-            <a href="student.php?course=<?php echo urlencode($_SESSION['student_course']); ?>&rollno=<?php echo $_SESSION['student_roll']; ?>" class="dropbtn">
+            <a href="student.php?course=<?php echo urlencode($_SESSION['student_course']); ?>&regno=<?php echo urlencode($_SESSION['student_registration'] ?? $_SESSION['student_roll'] ?? ''); ?>" class="dropbtn">
                 <i class="fa fa-file-text"></i> View Results
             </a>
         </li>
