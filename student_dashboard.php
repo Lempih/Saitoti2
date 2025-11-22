@@ -196,6 +196,134 @@
         .breadcrumb a:hover {
             text-decoration: underline;
         }
+        
+        .portal-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 30px;
+        }
+        
+        .portal-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .portal-section h3 {
+            color: #27ae60;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+        }
+        
+        .quick-action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 25px 20px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-action-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(39, 174, 96, 0.2);
+            border-color: #27ae60;
+        }
+        
+        .quick-action-btn i {
+            font-size: 2.5rem;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+        
+        .quick-action-btn span {
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-align: center;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid #e0e0e0;
+            text-align: center;
+        }
+        
+        .info-card i {
+            font-size: 2rem;
+            color: #27ae60;
+            margin-bottom: 10px;
+        }
+        
+        .info-card-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .info-card-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .grade-indicator {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            margin-top: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .grade-excellent {
+            background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+            color: white;
+        }
+        
+        .grade-good {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+        
+        .grade-average {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+        }
+        
+        .grade-poor {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+        
+        @media (max-width: 1024px) {
+            .portal-container {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -226,7 +354,72 @@
             </div>
         </div>
 
-        <?php if ($has_results && $result_row): ?>
+        <!-- Portal Sections -->
+        <div class="portal-container">
+            <!-- Quick Actions -->
+            <div class="portal-section">
+                <h3><i class="fa fa-bolt"></i> Quick Actions</h3>
+                <div class="quick-actions">
+                    <a href="student.php?course=<?php echo urlencode($student_course); ?>&regno=<?php echo urlencode($student_registration); ?>" class="quick-action-btn">
+                        <i class="fa fa-file-text"></i>
+                        <span>View Results</span>
+                    </a>
+                    <a href="student.php?course=<?php echo urlencode($student_course); ?>&regno=<?php echo urlencode($student_registration); ?>" class="quick-action-btn">
+                        <i class="fa fa-print"></i>
+                        <span>Print Results</span>
+                    </a>
+                    <a href="index.html" class="quick-action-btn">
+                        <i class="fa fa-home"></i>
+                        <span>Homepage</span>
+                    </a>
+                    <a href="student_logout.php" class="quick-action-btn" style="border-color: #e74c3c;">
+                        <i class="fa fa-sign-out" style="color: #e74c3c;"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Student Information -->
+            <div class="portal-section">
+                <h3><i class="fa fa-info-circle"></i> My Information</h3>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <i class="fa fa-id-card"></i>
+                        <div class="info-card-label">Registration Number</div>
+                        <div class="info-card-value"><?php echo htmlspecialchars($student_registration); ?></div>
+                    </div>
+                    <div class="info-card">
+                        <i class="fa fa-book"></i>
+                        <div class="info-card-label">Course</div>
+                        <div class="info-card-value"><?php echo htmlspecialchars($student_course); ?></div>
+                    </div>
+                    <div class="info-card">
+                        <i class="fa fa-envelope"></i>
+                        <div class="info-card-label">Email</div>
+                        <div class="info-card-value" style="font-size: 0.95rem; word-break: break-all;"><?php echo htmlspecialchars($student_email); ?></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <?php if ($has_results && $result_row): 
+            $percentage = floatval($result_row['grade_percentage']);
+            $grade_class = 'grade-average';
+            $grade_text = 'Average';
+            if ($percentage >= 90) {
+                $grade_class = 'grade-excellent';
+                $grade_text = 'Excellent';
+            } elseif ($percentage >= 75) {
+                $grade_class = 'grade-good';
+                $grade_text = 'Good';
+            } elseif ($percentage >= 50) {
+                $grade_class = 'grade-average';
+                $grade_text = 'Average';
+            } else {
+                $grade_class = 'grade-poor';
+                $grade_text = 'Needs Improvement';
+            }
+        ?>
             <div class="result-card">
                 <h3><i class="fa fa-graduation-cap"></i> Latest Examination Results</h3>
                 
@@ -258,6 +451,9 @@
                     <div class="score"><?php echo $result_row['total_marks']; ?> / 500</div>
                     <div style="margin-top: 15px; font-size: 1.5rem;">
                         Percentage: <?php echo number_format($result_row['grade_percentage'], 2); ?>%
+                    </div>
+                    <div class="grade-indicator <?php echo $grade_class; ?>">
+                        <?php echo $grade_text; ?>
                     </div>
                 </div>
 

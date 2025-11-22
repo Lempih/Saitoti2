@@ -170,13 +170,95 @@
         $has_registration_col = $reg_col_check && mysqli_num_rows($reg_col_check) > 0;
         
         if (!$has_registration_col) {
-            // Try to migrate roll_number to registration_number
-            $check_roll = "SHOW COLUMNS FROM student_records LIKE 'roll_number'";
-            $roll_exists = mysqli_query($db_connection, $check_roll);
-            if ($roll_exists && mysqli_num_rows($roll_exists) > 0) {
-                @mysqli_query($db_connection, "ALTER TABLE student_records CHANGE COLUMN roll_number registration_number VARCHAR(50) NOT NULL");
+            // Check if there's a foreign key constraint that needs to be dropped first
+            $fk_query = "SELECT CONSTRAINT_NAME FROM information_schema.KEY_COLUMN_USAGE 
+                         WHERE TABLE_SCHEMA = DATABASE() 
+                         AND TABLE_NAME = 'exam_results' 
+                         AND CONSTRAINT_NAME = 'exam_results_ibfk_2'";
+            $fk_result = mysqli_query($db_connection, $fk_query);
+            $has_fk_constraint = $fk_result && mysqli_num_rows($fk_result) > 0;
+            
+            // If foreign key constraint exists, we need admin to run migration script
+            if ($has_fk_constraint) {
+                $_SESSION['error'] = "Database migration required. Please contact administrator to run migrate_fix_fk.php first.";
+                // Don't proceed with migration if FK constraint exists - it needs admin privileges
+                // Just show error message and continue (migration will be handled by admin script)
             } else {
-                @mysqli_query($db_connection, "ALTER TABLE student_records ADD COLUMN registration_number VARCHAR(50) NOT NULL");
+                // Safe to proceed with automatic migration if no FK constraint
+                // Try to migrate roll_number to registration_number
+                $check_roll = "SHOW COLUMNS FROM student_records LIKE 'roll_number'";
+                $roll_exists = mysqli_query($db_connection, $check_roll);
+                if ($roll_exists && mysqli_num_rows($roll_exists) > 0) {
+                    // Check if primary key uses roll_number
+                    $pk_query = "SHOW KEYS FROM student_records WHERE Key_name = 'PRIMARY'";
+                    $pk_result = mysqli_query($db_connection, $pk_query);
+                    $pk_uses_roll = false;
+                    if ($pk_result) {
+                        while ($pk_row = mysqli_fetch_assoc($pk_result)) {
+                            if ($pk_row['Column_name'] === 'roll_number') {
+                                $pk_uses_roll = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Drop primary key if needed
+                    if ($pk_uses_roll) {
+                        @mysqli_query($db_connection, "ALTER TABLE student_records DROP PRIMARY KEY");
+                    }
+                    
+                    // Change column (this will fail if FK constraint exists)
+                    $alter_result = @mysqli_query($db_connection, "ALTER TABLE student_records CHANGE COLUMN roll_number registration_number VARCHAR(50) NOT NULL");
+                    
+                    if (!$alter_result && mysqli_errno($db_connection)) {
+                        // If it fails due to FK constraint, show helpful message
+                        if (strpos(mysqli_error($db_connection), 'foreign key') !== false) {
+                            $_SESSION['error'] = "Database migration required. Please contact administrator to run migrate_fix_fk.php first.";
+                            header("Location: student_signup.php");
+                            exit();
+                        }
+                    } else {
+                        // Re-add primary key if we dropped it and migration succeeded
+                        if ($pk_uses_roll && $alter_result) {
+                            @mysqli_query($db_connection, "ALTER TABLE student_records ADD PRIMARY KEY (full_name, registration_number)");
+                        }
+                    }
+                } else {
+                    @mysqli_query($db_connection, "ALTER TABLE student_records ADD COLUMN registration_number VARCHAR(50) NOT NULL");
+                }
+            }
+        }
+        
+        // Re-check if registration_number column exists after migration attempt
+        $recheck_reg_col = "SHOW COLUMNS FROM student_records LIKE 'registration_number'";
+        $recheck_reg_result = mysqli_query($db_connection, $recheck_reg_col);
+        $registration_col_exists = $recheck_reg_result && mysqli_num_rows($recheck_reg_result) > 0;
+        
+        // If column still doesn't exist, try one more time to add it
+        if (!$registration_col_exists) {
+            // Check if roll_number exists (might have been renamed)
+            $check_roll_again = "SHOW COLUMNS FROM student_records LIKE 'roll_number'";
+            $roll_again_result = mysqli_query($db_connection, $check_roll_again);
+            $roll_still_exists = $roll_again_result && mysqli_num_rows($roll_again_result) > 0;
+            
+            if (!$roll_still_exists) {
+                // Neither column exists, try to add registration_number
+                $add_col_result = @mysqli_query($db_connection, "ALTER TABLE student_records ADD COLUMN registration_number VARCHAR(50) NOT NULL AFTER full_name");
+                if ($add_col_result) {
+                    $registration_col_exists = true;
+                } else {
+                    // Final check - if still doesn't exist, show error
+                    $final_check = "SHOW COLUMNS FROM student_records LIKE 'registration_number'";
+                    $final_result = mysqli_query($db_connection, $final_check);
+                    $registration_col_exists = $final_result && mysqli_num_rows($final_result) > 0;
+                }
+            }
+            
+            // If column still doesn't exist, we can't proceed
+            if (!$registration_col_exists) {
+                $_SESSION['error'] = "Database configuration error. The registration_number column is missing. Please contact administrator to run migrate_fix_fk.php first.";
+                header("Location: student_signup.php");
+                exit();
             }
         }
 
@@ -195,6 +277,17 @@
         $email_col_check = mysqli_query($db_connection, $check_email_col);
         $has_email_col = $email_col_check && mysqli_num_rows($email_col_check) > 0;
 
+        // Double-check registration_number column exists before inserting
+        $final_check_reg = "SHOW COLUMNS FROM student_records LIKE 'registration_number'";
+        $final_check_result = mysqli_query($db_connection, $final_check_reg);
+        $final_reg_exists = $final_check_result && mysqli_num_rows($final_check_result) > 0;
+        
+        if (!$final_reg_exists) {
+            $_SESSION['error'] = "Database configuration error. The registration_number column is missing. Please contact administrator to run migrate_fix_fk.php first.";
+            header("Location: student_signup.php");
+            exit();
+        }
+        
         // Insert student using prepared statement
         // Registration number acts as password - no separate password field needed
         if ($has_email_col) {
@@ -237,8 +330,43 @@
         
         if ($result) {
             mysqli_stmt_close($stmt);
-            $_SESSION['success'] = "Registration successful! You can now login.";
-            header("Location: student_login.php");
+            
+            // Fetch the newly registered student's data to ensure we have all fields including profile_picture
+            $fetch_student_query = "SELECT full_name, email, registration_number, enrolled_course, profile_picture FROM student_records WHERE registration_number = ? AND email = ?";
+            $fetch_stmt = mysqli_prepare($db_connection, $fetch_student_query);
+            
+            if ($fetch_stmt) {
+                mysqli_stmt_bind_param($fetch_stmt, "ss", $registration_number, $email);
+                mysqli_stmt_execute($fetch_stmt);
+                $fetch_result = mysqli_stmt_get_result($fetch_stmt);
+                
+                if (mysqli_num_rows($fetch_result) == 1) {
+                    $student_data = mysqli_fetch_assoc($fetch_result);
+                    
+                    // Automatically log in the student after successful registration
+                    $_SESSION['student_logged_in'] = true;
+                    $_SESSION['student_email'] = $student_data['email'];
+                    $_SESSION['student_name'] = $student_data['full_name'];
+                    $_SESSION['student_registration'] = $student_data['registration_number'];
+                    $_SESSION['student_course'] = $student_data['enrolled_course'];
+                    
+                    $_SESSION['success'] = "Registration successful! Welcome to your dashboard.";
+                    mysqli_stmt_close($fetch_stmt);
+                    header("Location: student_dashboard.php");
+                    exit();
+                }
+                mysqli_stmt_close($fetch_stmt);
+            }
+            
+            // Fallback to basic session setup if fetch fails
+            $_SESSION['student_logged_in'] = true;
+            $_SESSION['student_email'] = $email;
+            $_SESSION['student_name'] = $full_name;
+            $_SESSION['student_registration'] = $registration_number;
+            $_SESSION['student_course'] = $course_name;
+            
+            $_SESSION['success'] = "Registration successful! Welcome to your dashboard.";
+            header("Location: student_dashboard.php");
             exit();
         } else {
             $error_code = mysqli_errno($db_connection);

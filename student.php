@@ -26,13 +26,13 @@
             $reg_check = mysqli_query($db_connection, $check_reg_col);
             $has_registration_col = $reg_check && mysqli_num_rows($reg_check) > 0;
             
-            // Get student name using prepared statement
+            // Get student name using prepared statement (case-insensitive search)
             if ($has_registration_col) {
-                $name_query = "SELECT full_name FROM student_records WHERE registration_number = ? AND enrolled_course = ?";
+                $name_query = "SELECT full_name, registration_number, enrolled_course FROM student_records WHERE LOWER(TRIM(registration_number)) = LOWER(TRIM(?)) AND LOWER(TRIM(enrolled_course)) = LOWER(TRIM(?))";
                 $name_stmt = mysqli_prepare($db_connection, $name_query);
                 mysqli_stmt_bind_param($name_stmt, "ss", $registration_number, $course);
             } else {
-                $name_query = "SELECT full_name FROM student_records WHERE roll_number = ? AND enrolled_course = ?";
+                $name_query = "SELECT full_name, roll_number as registration_number, enrolled_course FROM student_records WHERE LOWER(TRIM(roll_number)) = LOWER(TRIM(?)) AND LOWER(TRIM(enrolled_course)) = LOWER(TRIM(?))";
                 $name_stmt = mysqli_prepare($db_connection, $name_query);
                 mysqli_stmt_bind_param($name_stmt, "ss", $registration_number, $course);
             }
@@ -41,7 +41,39 @@
             $name_result = mysqli_stmt_get_result($name_stmt);
             
             if(mysqli_num_rows($name_result) == 0) {
-                $error_msg = ["Student not found in this course."];
+                // Try to find student in any course or with similar registration number
+                if ($has_registration_col) {
+                    $check_student = "SELECT full_name, registration_number, enrolled_course FROM student_records WHERE LOWER(TRIM(registration_number)) = LOWER(TRIM(?))";
+                    $check_stmt = mysqli_prepare($db_connection, $check_student);
+                    mysqli_stmt_bind_param($check_stmt, "s", $registration_number);
+                } else {
+                    $check_student = "SELECT full_name, roll_number as registration_number, enrolled_course FROM student_records WHERE LOWER(TRIM(roll_number)) = LOWER(TRIM(?))";
+                    $check_stmt = mysqli_prepare($db_connection, $check_student);
+                    mysqli_stmt_bind_param($check_stmt, "s", $registration_number);
+                }
+                mysqli_stmt_execute($check_stmt);
+                $check_result = mysqli_stmt_get_result($check_stmt);
+                
+                if(mysqli_num_rows($check_result) > 0) {
+                    $check_row = mysqli_fetch_assoc($check_result);
+                    $actual_course = $check_row['enrolled_course'];
+                    $error_msg = ["Student found but enrolled in different course. Student is enrolled in: <strong>" . htmlspecialchars($actual_course) . "</strong>. Please check the course name."];
+                } else {
+                    // Check if course exists
+                    $check_course = "SELECT course_name FROM courses WHERE LOWER(TRIM(course_name)) = LOWER(TRIM(?))";
+                    $course_stmt = mysqli_prepare($db_connection, $check_course);
+                    mysqli_stmt_bind_param($course_stmt, "s", $course);
+                    mysqli_stmt_execute($course_stmt);
+                    $course_result = mysqli_stmt_get_result($course_stmt);
+                    
+                    if(mysqli_num_rows($course_result) == 0) {
+                        $error_msg = ["Course '<strong>" . htmlspecialchars($course) . "</strong>' not found. Please check the course name or contact administrator."];
+                    } else {
+                        $error_msg = ["Student with registration number '<strong>" . htmlspecialchars($registration_number) . "</strong>' not found in course '<strong>" . htmlspecialchars($course) . "</strong>'. Please verify the registration number or contact administrator."];
+                    }
+                    mysqli_stmt_close($course_stmt);
+                }
+                mysqli_stmt_close($check_stmt);
             } else {
                 $name_row = mysqli_fetch_assoc($name_result);
                 $student_name = $name_row['full_name'];

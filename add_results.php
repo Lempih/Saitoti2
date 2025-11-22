@@ -166,7 +166,7 @@
                         $course_result = mysqli_query($db_connection, $course_query);
                         
                         if ($course_result && mysqli_num_rows($course_result) > 0) {
-                            echo '<select name="course_name" required>';
+                            echo '<select name="course_name" id="course_select" required>';
                             echo '<option value="" selected disabled>Select Course</option>';
                             
                             while($course_row = mysqli_fetch_array($course_result)) {
@@ -180,12 +180,20 @@
                     }
                 ?>
 
-                <input type="text" name="registration_number" placeholder="Registration Number" required minlength="3">
-                <input type="number" name="subject_1" id="" placeholder="Subject 1 Marks" min="0" max="100" required>
-                <input type="number" name="subject_2" id="" placeholder="Subject 2 Marks" min="0" max="100" required>
-                <input type="number" name="subject_3" id="" placeholder="Subject 3 Marks" min="0" max="100" required>
-                <input type="number" name="subject_4" id="" placeholder="Subject 4 Marks" min="0" max="100" required>
-                <input type="number" name="subject_5" id="" placeholder="Subject 5 Marks" min="0" max="100" required>
+                <input type="text" name="registration_number" placeholder="Registration Number" required minlength="3" id="reg_number">
+                
+                <div id="subjects-container">
+                    <!-- Default 5 subjects if no course units defined -->
+                    <input type="number" name="subject_1" id="subject_1" placeholder="Subject 1 Marks" min="0" max="100" required>
+                    <input type="number" name="subject_2" id="subject_2" placeholder="Subject 2 Marks" min="0" max="100" required>
+                    <input type="number" name="subject_3" id="subject_3" placeholder="Subject 3 Marks" min="0" max="100" required>
+                    <input type="number" name="subject_4" id="subject_4" placeholder="Subject 4 Marks" min="0" max="100" required>
+                    <input type="number" name="subject_5" id="subject_5" placeholder="Subject 5 Marks" min="0" max="100" required>
+                </div>
+                
+                <div style="margin: 15px 0; padding: 10px; background: #e8f5e9; border-radius: 8px; font-size: 0.9rem; color: #2e7d32;">
+                    <i class="fa fa-info-circle"></i> <strong>Note:</strong> Enter marks (0-100) for each course unit. If course units are not defined, use the default 5 subjects.
+                </div>
                 <input type="submit" value="Submit Results" name="submit_results" id="submitBtn">
             </fieldset>
         </form>
@@ -203,6 +211,78 @@
             showSuccess('<?php echo addslashes($_SESSION['success']); ?>');
             <?php unset($_SESSION['success']); ?>
         <?php endif; ?>
+
+        // Load course units when course is selected
+        var courseSelect = document.getElementById('course_select');
+        if (courseSelect) {
+            courseSelect.addEventListener('change', function() {
+                var courseName = this.value;
+                if (courseName) {
+                    loadCourseUnits(courseName);
+                } else {
+                    resetToDefaultSubjects();
+                }
+            });
+        }
+
+        function loadCourseUnits(courseName) {
+            // Check if course_units table exists and fetch units
+            fetch('get_course_units.php?course=' + encodeURIComponent(courseName))
+                .then(response => response.json())
+                .then(data => {
+                    var container = document.getElementById('subjects-container');
+                    if (data.success && data.units && data.units.length > 0) {
+                        // Show course-specific units
+                        container.innerHTML = '';
+                        data.units.forEach(function(unit, index) {
+                            var input = document.createElement('input');
+                            input.type = 'number';
+                            input.name = 'subject_' + (index + 1);
+                            input.id = 'subject_' + (index + 1);
+                            input.placeholder = unit.unit_name + (unit.unit_code ? ' (' + unit.unit_code + ')' : '') + ' Marks';
+                            input.min = '0';
+                            input.max = '100';
+                            input.required = true;
+                            container.appendChild(input);
+                        });
+                        // If less than 5 units, add remaining fields
+                        for (var i = data.units.length; i < 5; i++) {
+                            var input = document.createElement('input');
+                            input.type = 'number';
+                            input.name = 'subject_' + (i + 1);
+                            input.id = 'subject_' + (i + 1);
+                            input.placeholder = 'Subject ' + (i + 1) + ' Marks';
+                            input.min = '0';
+                            input.max = '100';
+                            input.required = true;
+                            container.appendChild(input);
+                        }
+                    } else {
+                        // No units defined, use default subjects
+                        resetToDefaultSubjects();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading course units:', error);
+                    resetToDefaultSubjects();
+                });
+        }
+
+        function resetToDefaultSubjects() {
+            var container = document.getElementById('subjects-container');
+            container.innerHTML = '';
+            for (var i = 1; i <= 5; i++) {
+                var input = document.createElement('input');
+                input.type = 'number';
+                input.name = 'subject_' + i;
+                input.id = 'subject_' + i;
+                input.placeholder = 'Subject ' + i + ' Marks';
+                input.min = '0';
+                input.max = '100';
+                input.required = true;
+                container.appendChild(input);
+            }
+        }
 
         document.getElementById('resultsForm').addEventListener('submit', function(e) {
             var btn = document.getElementById('submitBtn');

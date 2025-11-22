@@ -19,6 +19,11 @@
                 <i class="fa fa-dashboard"></i> Dashboard
             </a>
         </li>
+        <li>
+            <a href="admin_capabilities.php" class="dropbtn">
+                <i class="fa fa-shield"></i> Capabilities
+            </a>
+        </li>
         <li class="dropdown" onclick="toggleDisplay('1')">
             <a href="#" class="dropbtn">Course Management &nbsp
                 <span class="fa fa-angle-down"></span>
@@ -35,6 +40,7 @@
             <div class="dropdown-content" id="2">
                 <a href="add_students.php"><i class="fa fa-user-plus"></i> Register Student</a>
                 <a href="manage_students.php"><i class="fa fa-users"></i> View All Students</a>
+                <a href="check_student.php"><i class="fa fa-search"></i> Check Student</a>
             </div>
         </li>
         <li class="dropdown" onclick="toggleDisplay('3')">
@@ -44,6 +50,15 @@
             <div class="dropdown-content" id="3">
                 <a href="add_results.php"><i class="fa fa-edit"></i> Enter Examination Results</a>
                 <a href="manage_results.php"><i class="fa fa-cog"></i> Manage Results</a>
+            </div>
+        </li>
+        <li class="dropdown" onclick="toggleDisplay('4')">
+            <a href="#" class="dropbtn">System Settings &nbsp
+                <span class="fa fa-angle-down"></span>
+            </a>
+            <div class="dropdown-content" id="4">
+                <a href="manage_course_units.php"><i class="fa fa-graduation-cap"></i> Manage Course Units</a>
+                <a href="clear_all_data.php"><i class="fa fa-trash"></i> Clear All Data</a>
             </div>
         </li>
     </ul>
