@@ -21,10 +21,11 @@
     $student_name = $_SESSION['student_name'];
     $student_roll = $_SESSION['student_roll'];
     $student_course = $_SESSION['student_course'];
+    $student_profile_picture = null;
     
-    // Verify student still exists in database
+    // Verify student still exists in database and get profile picture
     if ($db_connection) {
-        $verify_query = "SELECT email FROM student_records WHERE email = ? AND roll_number = ? AND enrolled_course = ?";
+        $verify_query = "SELECT email, profile_picture FROM student_records WHERE email = ? AND roll_number = ? AND enrolled_course = ?";
         $verify_stmt = mysqli_prepare($db_connection, $verify_query);
         if ($verify_stmt) {
             mysqli_stmt_bind_param($verify_stmt, "sis", $student_email, $student_roll, $student_course);
@@ -37,6 +38,9 @@
                 $_SESSION['error'] = "Your account was not found. Please contact administrator.";
                 header("Location: student_login.php");
                 exit();
+            } else {
+                $student_data = mysqli_fetch_assoc($verify_result);
+                $student_profile_picture = $student_data['profile_picture'] ?? null;
             }
             mysqli_stmt_close($verify_stmt);
         }
@@ -173,11 +177,24 @@
     </div>
 
     <div class="main">
-        <div class="welcome-card">
-            <h2><i class="fa fa-user"></i> Welcome, <?php echo htmlspecialchars($student_name); ?>!</h2>
-            <p><strong>Email:</strong> <?php echo htmlspecialchars($student_email); ?></p>
-            <p><strong>Roll Number:</strong> <?php echo htmlspecialchars($student_roll); ?></p>
-            <p><strong>Course:</strong> <?php echo htmlspecialchars($student_course); ?></p>
+        <div class="welcome-card" style="display: flex; align-items: center; gap: 30px;">
+            <div style="flex-shrink: 0;">
+                <?php if ($student_profile_picture && file_exists($student_profile_picture)): ?>
+                    <img src="<?php echo htmlspecialchars($student_profile_picture); ?>" 
+                         alt="Profile Picture" 
+                         style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                <?php else: ?>
+                    <div style="width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.3); display: flex; align-items: center; justify-content: center; border: 4px solid white; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                        <i class="fa fa-user" style="font-size: 4rem; color: white;"></i>
+                    </div>
+                <?php endif; ?>
+            </div>
+            <div style="flex: 1;">
+                <h2><i class="fa fa-user"></i> Welcome, <?php echo htmlspecialchars($student_name); ?>!</h2>
+                <p><strong>Email:</strong> <?php echo htmlspecialchars($student_email); ?></p>
+                <p><strong>Roll Number:</strong> <?php echo htmlspecialchars($student_roll); ?></p>
+                <p><strong>Course:</strong> <?php echo htmlspecialchars($student_course); ?></p>
+            </div>
         </div>
 
         <?php if ($has_results && $result_row): ?>

@@ -42,13 +42,14 @@
     <div class="main">
         <?php
             if ($db_connection) {
-                $query = "SELECT full_name, roll_number, enrolled_course FROM student_records ORDER BY enrolled_course, roll_number ASC";
+                $query = "SELECT full_name, roll_number, enrolled_course, profile_picture FROM student_records ORDER BY enrolled_course, roll_number ASC";
                 $result = mysqli_query($db_connection, $query);
 
                 if (mysqli_num_rows($result) > 0) {
                    echo "<table>
                     <caption>All Registered Students</caption>
                     <tr>
+                    <th>Profile Picture</th>
                     <th>Student Name</th>
                     <th>Roll Number</th>
                     <th>Enrolled Course</th>
@@ -57,6 +58,17 @@
                     while($row = mysqli_fetch_array($result))
                       {
                         echo "<tr>";
+                        $profile_picture = isset($row['profile_picture']) && !empty($row['profile_picture']) && file_exists($row['profile_picture']) 
+                            ? htmlspecialchars($row['profile_picture']) 
+                            : null;
+                        
+                        echo "<td style='text-align: center;'>";
+                        if ($profile_picture) {
+                            echo "<img src='" . $profile_picture . "' alt='Profile Picture' style='width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 2px solid #ddd; cursor: pointer;' onclick='window.open(\"" . $profile_picture . "\", \"_blank\")' title='Click to view full size'>";
+                        } else {
+                            echo "<div style='width: 50px; height: 50px; border-radius: 50%; background: #f0f0f0; display: inline-flex; align-items: center; justify-content: center;'><i class='fa fa-user' style='color: #999;'></i></div>";
+                        }
+                        echo "</td>";
                         echo "<td>" . htmlspecialchars($row['full_name']) . "</td>";
                         echo "<td>" . htmlspecialchars($row['roll_number']) . "</td>";
                         echo "<td>" . htmlspecialchars($row['enrolled_course']) . "</td>";

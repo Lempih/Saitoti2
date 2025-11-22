@@ -123,20 +123,70 @@
             exit();
         }
 
+        // Handle profile picture upload
+        $profile_picture_path = null;
+        if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
+            $upload_dir = __DIR__ . '/images/uploads/';
+            
+            // Create upload directory if it doesn't exist
+            if (!file_exists($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
+            }
+            
+            $file = $_FILES['profile_picture'];
+            $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            $max_size = 5 * 1024 * 1024; // 5MB
+            $file_type = mime_content_type($file['tmp_name']);
+            
+            // Validate file type
+            if (in_array($file_type, $allowed_types) && $file['size'] <= $max_size) {
+                $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+                $unique_name = uniqid('profile_', true) . '_' . time() . '.' . $extension;
+                $upload_path = $upload_dir . $unique_name;
+                
+                if (move_uploaded_file($file['tmp_name'], $upload_path)) {
+                    $profile_picture_path = 'images/uploads/' . $unique_name;
+                }
+            }
+        }
+
         // Hash password
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-        // Insert student using prepared statement
-        $insert_query = "INSERT INTO student_records (full_name, email, roll_number, enrolled_course, password) VALUES (?, ?, ?, ?, ?)";
-        $stmt = mysqli_prepare($db_connection, $insert_query);
+        // Check if profile_picture column exists, if not add it
+        $check_profile_col = "SHOW COLUMNS FROM student_records LIKE 'profile_picture'";
+        $profile_col_result = mysqli_query($db_connection, $check_profile_col);
+        $profile_col_exists = $profile_col_result && mysqli_num_rows($profile_col_result) > 0;
         
-        if (!$stmt) {
-            $_SESSION['error'] = "Database error: " . mysqli_error($db_connection) . ". Please contact administrator.";
-            header("Location: student_signup.php");
-            exit();
+        if (!$profile_col_exists) {
+            $alter_profile = "ALTER TABLE student_records ADD COLUMN profile_picture VARCHAR(255) NULL AFTER password";
+            @mysqli_query($db_connection, $alter_profile);
         }
 
-        mysqli_stmt_bind_param($stmt, "ssiss", $full_name, $email, $roll_number, $course_name, $hashed_password);
+        // Insert student using prepared statement
+        if ($profile_col_exists || $profile_col_result) {
+            $insert_query = "INSERT INTO student_records (full_name, email, roll_number, enrolled_course, password, profile_picture) VALUES (?, ?, ?, ?, ?, ?)";
+            $stmt = mysqli_prepare($db_connection, $insert_query);
+            
+            if (!$stmt) {
+                $_SESSION['error'] = "Database error: " . mysqli_error($db_connection) . ". Please contact administrator.";
+                header("Location: student_signup.php");
+                exit();
+            }
+
+            mysqli_stmt_bind_param($stmt, "ssisss", $full_name, $email, $roll_number, $course_name, $hashed_password, $profile_picture_path);
+        } else {
+            $insert_query = "INSERT INTO student_records (full_name, email, roll_number, enrolled_course, password) VALUES (?, ?, ?, ?, ?)";
+            $stmt = mysqli_prepare($db_connection, $insert_query);
+            
+            if (!$stmt) {
+                $_SESSION['error'] = "Database error: " . mysqli_error($db_connection) . ". Please contact administrator.";
+                header("Location: student_signup.php");
+                exit();
+            }
+
+            mysqli_stmt_bind_param($stmt, "ssiss", $full_name, $email, $roll_number, $course_name, $hashed_password);
+        }
         $result = mysqli_stmt_execute($stmt);
         
         if ($result) {
@@ -186,11 +236,20 @@
 
     <div class="main" style="grid-template-columns: 1fr; max-width: 600px; margin: 100px auto 0;">
         <div class="login">
-            <form action="" method="post" name="student_signup_form" id="signupForm" onsubmit="return validateForm()">
+            <form action="" method="post" name="student_signup_form" id="signupForm" enctype="multipart/form-data" onsubmit="return validateForm()">
                 <fieldset>
                     <legend class="heading">
                         <i class="fa fa-user-plus"></i> Create Student Account
                     </legend>
+                    
+                    <!-- Profile Picture Upload -->
+                    <div style="margin-bottom: 15px;">
+                        <label for="profile_picture" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">
+                            <i class="fa fa-camera"></i> Profile Picture (Optional)
+                        </label>
+                        <input type="file" name="profile_picture" id="profile_picture" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" style="width: 100%; padding: 10px; border: 2px dashed #ddd; border-radius: 5px; background: #f9f9f9;">
+                    </div>
+                    
                     <input type="text" name="full_name" id="full_name" placeholder="Full Name" autocomplete="off" required minlength="3">
                     <input type="email" name="email" id="email" placeholder="Email Address" autocomplete="off" required>
                     <input type="number" name="roll_number" id="roll_number" placeholder="Roll Number" autocomplete="off" required min="1">
@@ -237,8 +296,15 @@
     </div>
 
     <script src="./js/toast.js"></script>
+    <script src="./js/image-preview.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Initialize image preview
+            const imagePreview = new ImagePreview({
+                inputSelector: '#profile_picture',
+                maxSize: 5 * 1024 * 1024, // 5MB
+                allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+            });
             
         <?php if (isset($_SESSION['error'])): ?>
             setTimeout(function() {

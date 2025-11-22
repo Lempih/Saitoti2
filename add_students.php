@@ -45,10 +45,53 @@
         }
         mysqli_stmt_close($check_stmt);
         
+        // Handle profile picture upload
+        $profile_picture_path = null;
+        if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
+            $upload_dir = __DIR__ . '/images/uploads/';
+            
+            // Create upload directory if it doesn't exist
+            if (!file_exists($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
+            }
+            
+            $file = $_FILES['profile_picture'];
+            $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            $max_size = 5 * 1024 * 1024; // 5MB
+            $file_type = mime_content_type($file['tmp_name']);
+            
+            // Validate file type
+            if (in_array($file_type, $allowed_types) && $file['size'] <= $max_size) {
+                $extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+                $unique_name = uniqid('profile_', true) . '_' . time() . '.' . $extension;
+                $upload_path = $upload_dir . $unique_name;
+                
+                if (move_uploaded_file($file['tmp_name'], $upload_path)) {
+                    $profile_picture_path = 'images/uploads/' . $unique_name;
+                }
+            }
+        }
+        
+        // Check if profile_picture column exists, if not add it
+        $check_profile_col = "SHOW COLUMNS FROM student_records LIKE 'profile_picture'";
+        $profile_col_result = mysqli_query($db_connection, $check_profile_col);
+        $profile_col_exists = $profile_col_result && mysqli_num_rows($profile_col_result) > 0;
+        
+        if (!$profile_col_exists) {
+            $alter_profile = "ALTER TABLE student_records ADD COLUMN profile_picture VARCHAR(255) NULL AFTER password";
+            @mysqli_query($db_connection, $alter_profile);
+        }
+        
         // Insert student using prepared statement
-        $insert_query = "INSERT INTO student_records (full_name, roll_number, enrolled_course) VALUES (?, ?, ?)";
-        $stmt = mysqli_prepare($db_connection, $insert_query);
-        mysqli_stmt_bind_param($stmt, "sis", $student_name, $roll_number, $course_name);
+        if ($profile_col_exists || $profile_col_result) {
+            $insert_query = "INSERT INTO student_records (full_name, roll_number, enrolled_course, profile_picture) VALUES (?, ?, ?, ?)";
+            $stmt = mysqli_prepare($db_connection, $insert_query);
+            mysqli_stmt_bind_param($stmt, "siss", $student_name, $roll_number, $course_name, $profile_picture_path);
+        } else {
+            $insert_query = "INSERT INTO student_records (full_name, roll_number, enrolled_course) VALUES (?, ?, ?)";
+            $stmt = mysqli_prepare($db_connection, $insert_query);
+            mysqli_stmt_bind_param($stmt, "sis", $student_name, $roll_number, $course_name);
+        }
         $result = mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
         
@@ -102,9 +145,18 @@
     </div>
 
     <div class="main">
-        <form action="" method="post" id="studentForm">
+        <form action="" method="post" id="studentForm" enctype="multipart/form-data">
             <fieldset>
                 <legend><i class="fa fa-user-plus"></i> Register New Student</legend>
+                
+                <!-- Profile Picture Upload -->
+                <div style="margin-bottom: 15px;">
+                    <label for="profile_picture" style="display: block; margin-bottom: 8px; color: #333; font-weight: 500;">
+                        <i class="fa fa-camera"></i> Profile Picture (Optional)
+                    </label>
+                    <input type="file" name="profile_picture" id="profile_picture" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" style="width: 100%; padding: 10px; border: 2px dashed #ddd; border-radius: 5px; background: #f9f9f9;">
+                </div>
+                
                 <input type="text" name="student_name" placeholder="Full Name" required minlength="3">
                 <input type="number" name="roll_number" placeholder="Roll Number" required min="1">
                 <?php
@@ -134,8 +186,15 @@
     <div class="footer">
     </div>
 
+    <script src="./js/image-preview.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // Initialize image preview
+            const imagePreview = new ImagePreview({
+                inputSelector: '#profile_picture',
+                maxSize: 5 * 1024 * 1024, // 5MB
+                allowedTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+            });
             
         <?php if (isset($_SESSION['error'])): ?>
             showError('<?php echo addslashes($_SESSION['error']); ?>');
