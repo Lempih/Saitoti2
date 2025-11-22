@@ -297,6 +297,7 @@
 
     <script src="./js/toast.js"></script>
     <script src="./js/image-preview.js"></script>
+    <script src="./js/password-toggle.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             // Initialize image preview

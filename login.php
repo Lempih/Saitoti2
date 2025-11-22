@@ -102,7 +102,7 @@
                 <fieldset>
                     <legend class="heading"><i class="fa fa-user-shield"></i> Administrator Access</legend>
                     <input type="text" name="username" placeholder="Username" autocomplete="off" required>
-                    <input type="password" name="password" placeholder="Password" autocomplete="off" required>
+                    <input type="password" name="password" id="adminPassword" placeholder="Password" autocomplete="off" required>
                     <input type="submit" value="Sign In" name="login_submit" id="adminLoginBtn">
                     <p style="text-align: center; margin-top: 15px; color: #666; font-size: 0.9rem;">
                         Default: <strong>administrator</strong> / <strong>admin2024</strong>
@@ -146,6 +146,7 @@
     </div>
 
     <script src="./js/toast.js"></script>
+    <script src="./js/password-toggle.js"></script>
     <script>
         // Wait for DOM and toast to be ready
         document.addEventListener('DOMContentLoaded', function() {

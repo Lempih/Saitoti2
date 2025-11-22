@@ -122,7 +122,7 @@
                         <i class="fa fa-sign-in"></i> Student Login
                     </legend>
                     <input type="email" name="email" placeholder="Email Address" autocomplete="off" required>
-                    <input type="password" name="password" placeholder="Password" autocomplete="off" required>
+                    <input type="password" name="password" id="password" placeholder="Password" autocomplete="off" required>
                     <input type="submit" value="Login" name="login_submit" id="loginBtn">
                     <p style="text-align: center; margin-top: 20px; color: #666;">
                         Don't have an account? <a href="student_signup.php" style="color: #27ae60; text-decoration: none; font-weight: 600;">Sign up here</a>
@@ -171,6 +171,7 @@
     </div>
 
     <script src="./js/toast.js"></script>
+    <script src="./js/password-toggle.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             <?php if (isset($_SESSION['error'])): ?>
