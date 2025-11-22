@@ -102,14 +102,14 @@
         
         /* Hero Section */
         .hero {
-            background: linear-gradient(135deg, #1e8449 0%, #27ae60 50%, #2ecc71 100%);
-            padding: 100px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            padding: 120px 40px;
             color: white;
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 60px;
+            gap: 80px;
             align-items: center;
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
             position: relative;
             overflow: hidden;
@@ -120,11 +120,30 @@
             position: absolute;
             top: -50%;
             right: -20%;
-            width: 600px;
-            height: 600px;
+            width: 800px;
+            height: 800px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
+            filter: blur(100px);
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        .hero::after {
+            content: '';
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 600px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 50%;
             filter: blur(80px);
+            animation: pulse 5s ease-in-out infinite reverse;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
         }
         
         .hero-content {
@@ -132,20 +151,125 @@
             animation: fadeInLeft 1s ease;
         }
         
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            animation: slideDown 0.8s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         .hero-title {
-            font-size: 3.5rem;
+            font-size: 4rem;
             font-weight: 800;
             margin-bottom: 25px;
-            line-height: 1.2;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            line-height: 1.15;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
         }
         
         .hero-subtitle {
-            font-size: 1.3rem;
-            margin-bottom: 40px;
+            font-size: 1.25rem;
+            margin-bottom: 35px;
             opacity: 0.95;
             line-height: 1.8;
             font-weight: 400;
+            max-width: 600px;
+        }
+        
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 40px;
+            padding: 25px 0;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+        
+        .image-wrapper {
+            position: relative;
+            z-index: 1;
+            animation: fadeInRight 1s ease;
+        }
+        
+        .floating-card {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #667eea;
+            font-weight: 600;
+            font-size: 0.95rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .floating-card i {
+            font-size: 1.3rem;
+        }
+        
+        .card-1 {
+            top: 10%;
+            right: -10%;
+            animation-delay: 0s;
+        }
+        
+        .card-2 {
+            bottom: 20%;
+            left: -15%;
+            animation-delay: 1s;
+        }
+        
+        .card-3 {
+            top: 50%;
+            right: -5%;
+            animation-delay: 2s;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
         }
         
         .hero-buttons {
@@ -205,9 +329,15 @@
         .hero-img {
             width: 100%;
             height: auto;
-            border-radius: 25px;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
             object-fit: cover;
+            border: 5px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .hero-img:hover {
+            transform: scale(1.02);
         }
         
         /* Features Section */
@@ -299,29 +429,75 @@
         
         /* About Section */
         .about {
-            padding: 100px 40px;
-            background: white;
+            padding: 120px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .about::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -20%;
+            width: 600px;
+            height: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            filter: blur(80px);
         }
         
         .about-content {
             max-width: 900px;
             margin: 0 auto;
             text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .about .section-title {
+            background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .about .section-title::after {
+            background: rgba(255, 255, 255, 0.5);
         }
         
         .about-text {
-            font-size: 1.15rem;
-            color: #555;
+            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.95);
             line-height: 2;
-            margin-bottom: 25px;
+            margin-bottom: 30px;
+            font-weight: 400;
         }
         
         /* Footer */
         .footer {
-            background: #2d3748;
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
             color: white;
             text-align: center;
-            padding: 40px 20px;
+            padding: 60px 20px;
+            position: relative;
+        }
+        
+        .footer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
+        }
+        
+        .footer p {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin: 0;
         }
         
         /* Animations */
@@ -351,12 +527,21 @@
         @media (max-width: 1024px) {
             .hero {
                 grid-template-columns: 1fr;
-                padding: 60px 30px;
+                padding: 80px 30px;
                 text-align: center;
+                gap: 50px;
             }
             
             .hero-title {
-                font-size: 2.8rem;
+                font-size: 3rem;
+            }
+            
+            .hero-stats {
+                justify-content: center;
+            }
+            
+            .floating-card {
+                display: none;
             }
         }
         
@@ -380,12 +565,25 @@
                 padding: 50px 20px;
             }
             
+            .hero {
+                padding: 60px 20px;
+            }
+            
             .hero-title {
-                font-size: 2.2rem;
+                font-size: 2.5rem;
             }
             
             .hero-subtitle {
-                font-size: 1.1rem;
+                font-size: 1.05rem;
+            }
+            
+            .hero-stats {
+                gap: 20px;
+                justify-content: space-around;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
             }
             
             .hero-buttons {
@@ -398,20 +596,24 @@
             }
             
             .features {
-                padding: 60px 20px;
+                padding: 80px 20px;
             }
             
             .section-title {
-                font-size: 2.2rem;
+                font-size: 2.5rem;
             }
             
             .features-grid {
                 grid-template-columns: 1fr;
-                gap: 25px;
+                gap: 30px;
+            }
+            
+            .feature-card {
+                padding: 40px 30px;
             }
             
             .about {
-                padding: 60px 20px;
+                padding: 80px 20px;
             }
         }
     </style>
@@ -438,8 +640,25 @@
         <!-- Hero Section -->
         <section class="hero">
             <div class="hero-content">
-                <h2 class="hero-title">Welcome to Academic Results Management System</h2>
-                <p class="hero-subtitle">Streamline your academic record management with our comprehensive, secure, and user-friendly platform designed for modern educational institutions.</p>
+                <div class="hero-badge">
+                    <i class="fa fa-award"></i> Trusted by Educational Institutions
+                </div>
+                <h2 class="hero-title">Academic Results Management System</h2>
+                <p class="hero-subtitle">A modern, secure, and efficient platform for managing student academic records and examination results. Streamline your institution's result management process with ease.</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Secure</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Accessible</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">Easy</div>
+                        <div class="stat-label">To Use</div>
+                    </div>
+                </div>
                 <div class="hero-buttons">
                     <a href="login.php" class="btn btn-large btn-primary">
                         <i class="fa fa-user-shield"></i> Administrator Portal
@@ -451,12 +670,26 @@
                         <i class="fa fa-sign-in"></i> Student Login
                     </a>
                     <a href="login.php" class="btn btn-large btn-secondary">
-                        <i class="fa fa-search"></i> Quick Results Check
+                        <i class="fa fa-search"></i> Quick Results
                     </a>
                 </div>
             </div>
             <div class="hero-image">
-                <img src="images/examp.jpg" alt="Academic Excellence" class="hero-img">
+                <div class="image-wrapper">
+                    <img src="images/examp.jpg" alt="Academic Excellence" class="hero-img">
+                    <div class="floating-card card-1">
+                        <i class="fa fa-graduation-cap"></i>
+                        <span>Excellence</span>
+                    </div>
+                    <div class="floating-card card-2">
+                        <i class="fa fa-trophy"></i>
+                        <span>Achievement</span>
+                    </div>
+                    <div class="floating-card card-3">
+                        <i class="fa fa-star"></i>
+                        <span>Quality</span>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -484,7 +717,7 @@
                             <i class="fa fa-chart-line"></i>
                         </div>
                         <h3>Quick Results</h3>
-                        <p>Students can instantly view their examination results with just their roll number - no login required</p>
+                        <p>Students can instantly view their examination results with just their registration number - quick and easy access</p>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon">

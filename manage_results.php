@@ -3,14 +3,25 @@
     require_once('db_config.php');
     require_once('auth_check.php');
 
-    if(isset($_POST['course_name'], $_POST['roll_number'], $_POST['delete_result'])) {
+    if(isset($_POST['course_name'], $_POST['registration_number'], $_POST['delete_result'])) {
         $course_name = trim($_POST['course_name']);
-        $roll_number = intval($_POST['roll_number']);
+        $registration_number = trim($_POST['registration_number']);
+        
+        // Check which column exists
+        $check_results_reg = "SHOW COLUMNS FROM exam_results LIKE 'registration_number'";
+        $results_reg_check = mysqli_query($db_connection, $check_results_reg);
+        $has_results_reg_col = $results_reg_check && mysqli_num_rows($results_reg_check) > 0;
         
         // Use prepared statement for deletion
-        $delete_query = "DELETE FROM exam_results WHERE roll_number = ? AND course_name = ?";
-        $stmt = mysqli_prepare($db_connection, $delete_query);
-        mysqli_stmt_bind_param($stmt, "is", $roll_number, $course_name);
+        if ($has_results_reg_col) {
+            $delete_query = "DELETE FROM exam_results WHERE registration_number = ? AND course_name = ?";
+            $stmt = mysqli_prepare($db_connection, $delete_query);
+            mysqli_stmt_bind_param($stmt, "ss", $registration_number, $course_name);
+        } else {
+            $delete_query = "DELETE FROM exam_results WHERE roll_number = ? AND course_name = ?";
+            $stmt = mysqli_prepare($db_connection, $delete_query);
+            mysqli_stmt_bind_param($stmt, "ss", $registration_number, $course_name);
+        }
         $delete_result = mysqli_stmt_execute($stmt);
         $affected_rows = mysqli_stmt_affected_rows($stmt);
         mysqli_stmt_close($stmt);
@@ -26,8 +37,8 @@
         }
     }
 
-    if(isset($_POST['rollno'], $_POST['subject_1'], $_POST['subject_2'], $_POST['subject_3'], $_POST['subject_4'], $_POST['subject_5'], $_POST['course'], $_POST['update_result'])) {
-        $roll_number = intval($_POST['rollno']);
+    if(isset($_POST['registration_number'], $_POST['subject_1'], $_POST['subject_2'], $_POST['subject_3'], $_POST['subject_4'], $_POST['subject_5'], $_POST['course'], $_POST['update_result'])) {
+        $registration_number = trim($_POST['registration_number']);
         $course_name = trim($_POST['course']);
         $subject_1 = intval($_POST['subject_1']);
         $subject_2 = intval($_POST['subject_2']);
@@ -46,16 +57,27 @@
             exit();
         }
 
+        // Check which column exists
+        $check_results_reg = "SHOW COLUMNS FROM exam_results LIKE 'registration_number'";
+        $results_reg_check = mysqli_query($db_connection, $check_results_reg);
+        $has_results_reg_col = $results_reg_check && mysqli_num_rows($results_reg_check) > 0;
+        
         // Update using prepared statement
-        $update_query = "UPDATE exam_results SET subject_1 = ?, subject_2 = ?, subject_3 = ?, subject_4 = ?, subject_5 = ?, total_marks = ?, grade_percentage = ? WHERE roll_number = ? AND course_name = ?";
-        $stmt = mysqli_prepare($db_connection, $update_query);
-        mysqli_stmt_bind_param($stmt, "iiiiidis", $subject_1, $subject_2, $subject_3, $subject_4, $subject_5, $total_marks, $grade_percentage, $roll_number, $course_name);
+        if ($has_results_reg_col) {
+            $update_query = "UPDATE exam_results SET subject_1 = ?, subject_2 = ?, subject_3 = ?, subject_4 = ?, subject_5 = ?, total_marks = ?, grade_percentage = ? WHERE registration_number = ? AND course_name = ?";
+            $stmt = mysqli_prepare($db_connection, $update_query);
+            mysqli_stmt_bind_param($stmt, "iiiiidss", $subject_1, $subject_2, $subject_3, $subject_4, $subject_5, $total_marks, $grade_percentage, $registration_number, $course_name);
+        } else {
+            $update_query = "UPDATE exam_results SET subject_1 = ?, subject_2 = ?, subject_3 = ?, subject_4 = ?, subject_5 = ?, total_marks = ?, grade_percentage = ? WHERE roll_number = ? AND course_name = ?";
+            $stmt = mysqli_prepare($db_connection, $update_query);
+            mysqli_stmt_bind_param($stmt, "iiiiidss", $subject_1, $subject_2, $subject_3, $subject_4, $subject_5, $total_marks, $grade_percentage, $registration_number, $course_name);
+        }
         $update_result = mysqli_stmt_execute($stmt);
         $affected_rows = mysqli_stmt_affected_rows($stmt);
         mysqli_stmt_close($stmt);
 
         if($affected_rows == 0){
-            $_SESSION['error'] = "Result not found. Please check the roll number and course.";
+            $_SESSION['error'] = "Result not found. Please check the registration number and course.";
             header("Location: manage_results.php");
             exit();
         } else {
@@ -123,7 +145,7 @@
                         }
                     }
                 ?>
-                <input type="number" name="roll_number" placeholder="Roll Number" required min="1">
+                <input type="text" name="registration_number" placeholder="Registration Number" required minlength="3">
                 <input type="submit" value="Delete Result" name="delete_result" id="deleteBtn">
             </fieldset>
         </form>
@@ -151,7 +173,7 @@
                     }
                 ?>
                 
-                <input type="number" name="rollno" placeholder="Roll Number" required min="1">
+                <input type="text" name="registration_number" placeholder="Registration Number" required minlength="3">
                 <input type="number" name="subject_1" id="" placeholder="Subject 1 Marks" min="0" max="100" required>
                 <input type="number" name="subject_2" id="" placeholder="Subject 2 Marks" min="0" max="100" required>
                 <input type="number" name="subject_3" id="" placeholder="Subject 3 Marks" min="0" max="100" required>

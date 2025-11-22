@@ -3,10 +3,10 @@
     require_once('db_config.php');
     require_once('auth_check.php');
 
-    // Handle form submission
-    if(isset($_POST['student_name'], $_POST['roll_number'], $_POST['submit_student'])) {
+    // Handle form submission - using registration_number
+    if(isset($_POST['student_name'], $_POST['registration_number'], $_POST['submit_student'])) {
         $student_name = trim($_POST['student_name']);
-        $roll_number = intval($_POST['roll_number']);
+        $registration_number = trim($_POST['registration_number']);
         $course_name = isset($_POST['course_name']) ? trim($_POST['course_name']) : null;
 
         // Validation
@@ -17,8 +17,8 @@
         if (empty($course_name)) {
             $errors[] = "Please select a course";
         }
-        if (empty($roll_number) || $roll_number <= 0) {
-            $errors[] = "Please enter a valid roll number";
+        if (empty($registration_number) || strlen($registration_number) < 3) {
+            $errors[] = "Please enter a valid registration number (min 3 characters)";
         }
         if (!preg_match("/^[a-zA-Z\s]+$/", $student_name)) {
             $errors[] = "Name should only contain letters and spaces";
@@ -30,15 +30,36 @@
             exit();
         }
 
-        // Check if student with same name and roll number already exists
-        $check_query = "SELECT full_name, roll_number FROM student_records WHERE full_name = ? AND roll_number = ?";
-        $check_stmt = mysqli_prepare($db_connection, $check_query);
-        mysqli_stmt_bind_param($check_stmt, "si", $student_name, $roll_number);
+        // Check/migrate registration_number column
+        $check_reg_col = "SHOW COLUMNS FROM student_records LIKE 'registration_number'";
+        $reg_col_check = mysqli_query($db_connection, $check_reg_col);
+        $has_registration_col = $reg_col_check && mysqli_num_rows($reg_col_check) > 0;
+        
+        if (!$has_registration_col) {
+            $check_roll = "SHOW COLUMNS FROM student_records LIKE 'roll_number'";
+            $roll_exists = mysqli_query($db_connection, $check_roll);
+            if ($roll_exists && mysqli_num_rows($roll_exists) > 0) {
+                @mysqli_query($db_connection, "ALTER TABLE student_records CHANGE COLUMN roll_number registration_number VARCHAR(50) NOT NULL");
+                $has_registration_col = true;
+            }
+        }
+
+        // Check if registration number already exists (must be unique)
+        if ($has_registration_col) {
+            $check_query = "SELECT registration_number FROM student_records WHERE registration_number = ?";
+            $check_stmt = mysqli_prepare($db_connection, $check_query);
+            mysqli_stmt_bind_param($check_stmt, "s", $registration_number);
+        } else {
+            $check_query = "SELECT roll_number FROM student_records WHERE roll_number = ?";
+            $check_stmt = mysqli_prepare($db_connection, $check_query);
+            mysqli_stmt_bind_param($check_stmt, "s", $registration_number);
+        }
+        
         mysqli_stmt_execute($check_stmt);
         $check_result = mysqli_stmt_get_result($check_stmt);
         
         if(mysqli_num_rows($check_result) > 0) {
-            $_SESSION['error'] = "Student with this name and roll number already exists!";
+            $_SESSION['error'] = "Registration number already exists! Registration numbers must be unique.";
             mysqli_stmt_close($check_stmt);
             header("Location: add_students.php");
             exit();
@@ -78,19 +99,32 @@
         $profile_col_exists = $profile_col_result && mysqli_num_rows($profile_col_result) > 0;
         
         if (!$profile_col_exists) {
-            $alter_profile = "ALTER TABLE student_records ADD COLUMN profile_picture VARCHAR(255) NULL AFTER password";
+            $alter_profile = "ALTER TABLE student_records ADD COLUMN profile_picture VARCHAR(255) NULL";
             @mysqli_query($db_connection, $alter_profile);
         }
         
         // Insert student using prepared statement
-        if ($profile_col_exists || $profile_col_result) {
-            $insert_query = "INSERT INTO student_records (full_name, roll_number, enrolled_course, profile_picture) VALUES (?, ?, ?, ?)";
-            $stmt = mysqli_prepare($db_connection, $insert_query);
-            mysqli_stmt_bind_param($stmt, "siss", $student_name, $roll_number, $course_name, $profile_picture_path);
+        if ($has_registration_col) {
+            if ($profile_col_exists) {
+                $insert_query = "INSERT INTO student_records (full_name, registration_number, enrolled_course, profile_picture) VALUES (?, ?, ?, ?)";
+                $stmt = mysqli_prepare($db_connection, $insert_query);
+                mysqli_stmt_bind_param($stmt, "ssss", $student_name, $registration_number, $course_name, $profile_picture_path);
+            } else {
+                $insert_query = "INSERT INTO student_records (full_name, registration_number, enrolled_course) VALUES (?, ?, ?)";
+                $stmt = mysqli_prepare($db_connection, $insert_query);
+                mysqli_stmt_bind_param($stmt, "sss", $student_name, $registration_number, $course_name);
+            }
         } else {
-            $insert_query = "INSERT INTO student_records (full_name, roll_number, enrolled_course) VALUES (?, ?, ?)";
-            $stmt = mysqli_prepare($db_connection, $insert_query);
-            mysqli_stmt_bind_param($stmt, "sis", $student_name, $roll_number, $course_name);
+            // Fallback to roll_number if migration not done
+            if ($profile_col_exists) {
+                $insert_query = "INSERT INTO student_records (full_name, roll_number, enrolled_course, profile_picture) VALUES (?, ?, ?, ?)";
+                $stmt = mysqli_prepare($db_connection, $insert_query);
+                mysqli_stmt_bind_param($stmt, "siss", $student_name, $registration_number, $course_name, $profile_picture_path);
+            } else {
+                $insert_query = "INSERT INTO student_records (full_name, roll_number, enrolled_course) VALUES (?, ?, ?)";
+                $stmt = mysqli_prepare($db_connection, $insert_query);
+                mysqli_stmt_bind_param($stmt, "sis", $student_name, $registration_number, $course_name);
+            }
         }
         $result = mysqli_stmt_execute($stmt);
         mysqli_stmt_close($stmt);
@@ -158,7 +192,10 @@
                 </div>
                 
                 <input type="text" name="student_name" placeholder="Full Name" required minlength="3">
-                <input type="number" name="roll_number" placeholder="Roll Number" required min="1">
+                <input type="text" name="registration_number" placeholder="Registration Number" required minlength="3">
+                <p style="text-align: center; margin-top: 5px; color: #666; font-size: 0.85rem;">
+                    <i class="fa fa-info-circle"></i> Registration number must be unique and will be used for login
+                </p>
                 <?php
                     if ($db_connection) {
                         $course_query = "SELECT course_name FROM courses ORDER BY course_name ASC";

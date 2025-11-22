@@ -42,7 +42,17 @@
     <div class="main">
         <?php
             if ($db_connection) {
-                $query = "SELECT full_name, roll_number, enrolled_course, profile_picture FROM student_records ORDER BY enrolled_course, roll_number ASC";
+                // Check which column exists
+                $check_reg_col = "SHOW COLUMNS FROM student_records LIKE 'registration_number'";
+                $reg_check = mysqli_query($db_connection, $check_reg_col);
+                $has_registration_col = $reg_check && mysqli_num_rows($reg_check) > 0;
+                
+                if ($has_registration_col) {
+                    $query = "SELECT full_name, registration_number, enrolled_course, profile_picture FROM student_records ORDER BY enrolled_course, registration_number ASC";
+                } else {
+                    $query = "SELECT full_name, roll_number AS registration_number, enrolled_course, profile_picture FROM student_records ORDER BY enrolled_course, roll_number ASC";
+                }
+                
                 $result = mysqli_query($db_connection, $query);
 
                 if (mysqli_num_rows($result) > 0) {
@@ -51,7 +61,7 @@
                     <tr>
                     <th>Profile Picture</th>
                     <th>Student Name</th>
-                    <th>Roll Number</th>
+                    <th>Registration Number</th>
                     <th>Enrolled Course</th>
                     </tr>";
 
@@ -70,7 +80,7 @@
                         }
                         echo "</td>";
                         echo "<td>" . htmlspecialchars($row['full_name']) . "</td>";
-                        echo "<td>" . htmlspecialchars($row['roll_number']) . "</td>";
+                        echo "<td>" . htmlspecialchars($row['registration_number']) . "</td>";
                         echo "<td>" . htmlspecialchars($row['enrolled_course']) . "</td>";
                         echo "</tr>";
                       }

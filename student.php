@@ -7,23 +7,36 @@
     else
         $course = trim($_GET['course']);
     
-    $roll_number = isset($_GET['rollno']) ? intval($_GET['rollno']) : null;
+    // Support both regno (new) and rollno (old) for backward compatibility
+    $registration_number = isset($_GET['regno']) ? trim($_GET['regno']) : (isset($_GET['rollno']) ? trim($_GET['rollno']) : null);
 
     // Validation
-    if (empty($course) || empty($roll_number) || $roll_number <= 0) {
+    if (empty($course) || empty($registration_number) || strlen($registration_number) < 3) {
         $error_msg = [];
         if(empty($course))
             $error_msg[] = "Please select your course";
-        if(empty($roll_number) || $roll_number <= 0)
-            $error_msg[] = "Please enter a valid roll number";
+        if(empty($registration_number) || strlen($registration_number) < 3)
+            $error_msg[] = "Please enter a valid registration number";
     } else {
         if (!$db_connection) {
             $error_msg = ["Database connection failed. Please try again later."];
         } else {
+            // Check which column exists (migration support)
+            $check_reg_col = "SHOW COLUMNS FROM student_records LIKE 'registration_number'";
+            $reg_check = mysqli_query($db_connection, $check_reg_col);
+            $has_registration_col = $reg_check && mysqli_num_rows($reg_check) > 0;
+            
             // Get student name using prepared statement
-            $name_query = "SELECT full_name FROM student_records WHERE roll_number = ? AND enrolled_course = ?";
-            $name_stmt = mysqli_prepare($db_connection, $name_query);
-            mysqli_stmt_bind_param($name_stmt, "is", $roll_number, $course);
+            if ($has_registration_col) {
+                $name_query = "SELECT full_name FROM student_records WHERE registration_number = ? AND enrolled_course = ?";
+                $name_stmt = mysqli_prepare($db_connection, $name_query);
+                mysqli_stmt_bind_param($name_stmt, "ss", $registration_number, $course);
+            } else {
+                $name_query = "SELECT full_name FROM student_records WHERE roll_number = ? AND enrolled_course = ?";
+                $name_stmt = mysqli_prepare($db_connection, $name_query);
+                mysqli_stmt_bind_param($name_stmt, "ss", $registration_number, $course);
+            }
+            
             mysqli_stmt_execute($name_stmt);
             $name_result = mysqli_stmt_get_result($name_stmt);
             
@@ -34,10 +47,21 @@
                 $student_name = $name_row['full_name'];
                 mysqli_stmt_close($name_stmt);
 
+                // Check exam_results column
+                $check_results_reg = "SHOW COLUMNS FROM exam_results LIKE 'registration_number'";
+                $results_reg_check = mysqli_query($db_connection, $check_results_reg);
+                $has_results_reg_col = $results_reg_check && mysqli_num_rows($results_reg_check) > 0;
+                
                 // Get result using prepared statement
-                $result_query = "SELECT subject_1, subject_2, subject_3, subject_4, subject_5, total_marks, grade_percentage FROM exam_results WHERE roll_number = ? AND course_name = ?";
-                $result_stmt = mysqli_prepare($db_connection, $result_query);
-                mysqli_stmt_bind_param($result_stmt, "is", $roll_number, $course);
+                if ($has_results_reg_col) {
+                    $result_query = "SELECT subject_1, subject_2, subject_3, subject_4, subject_5, total_marks, grade_percentage FROM exam_results WHERE registration_number = ? AND course_name = ?";
+                    $result_stmt = mysqli_prepare($db_connection, $result_query);
+                    mysqli_stmt_bind_param($result_stmt, "ss", $registration_number, $course);
+                } else {
+                    $result_query = "SELECT subject_1, subject_2, subject_3, subject_4, subject_5, total_marks, grade_percentage FROM exam_results WHERE roll_number = ? AND course_name = ?";
+                    $result_stmt = mysqli_prepare($db_connection, $result_query);
+                    mysqli_stmt_bind_param($result_stmt, "ss", $registration_number, $course);
+                }
                 mysqli_stmt_execute($result_stmt);
                 $result_data = mysqli_stmt_get_result($result_stmt);
                 
@@ -143,7 +167,7 @@
         <div class="details">
             <span>Student Name:</span> <?php echo htmlspecialchars($student_name); ?> <br>
             <span>Course:</span> <?php echo htmlspecialchars($course); ?> <br>
-            <span>Roll Number:</span> <?php echo htmlspecialchars($roll_number); ?> <br>
+            <span>Registration Number:</span> <?php echo htmlspecialchars($registration_number); ?> <br>
         </div>
 
         <div class="main">

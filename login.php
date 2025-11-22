@@ -135,7 +135,7 @@
                         }
                     ?>
 
-                    <input type="number" name="rollno" placeholder="Enter Roll Number" required min="1">
+                    <input type="text" name="regno" placeholder="Enter Registration Number" required minlength="3">
                     <input type="submit" value="View Results">
                     <p style="text-align: center; margin-top: 20px; color: #666; font-size: 0.9rem;">
                         Check results without logging in
